@@ -70,18 +70,21 @@ const ProductDetails: React.FC = () => {
   };
 
   const handleDelete = async () => {
-    if (window.confirm('Are you sure you want to delete this product?')) {
+    if (window.confirm('Are you sure you want to delete this product? This action cannot be undone.')) {
       try {
         await deleteProduct.mutateAsync(id!);
+        queryClient.invalidateQueries({ queryKey: ['products'] });
+        queryClient.invalidateQueries({ queryKey: ['product', id] });
         toast({
           title: "Product deleted",
           description: "Product has been successfully deleted.",
         });
         setLocation('/products');
-      } catch (error) {
+      } catch (error: any) {
+        console.error('Delete error:', error);
         toast({
           title: "Delete failed",
-          description: "Failed to delete product. Please try again.",
+          description: `Failed to delete product: ${error.message || 'Unknown error'}`,
           variant: "destructive",
         });
       }
@@ -491,9 +494,14 @@ const ProductDetails: React.FC = () => {
                   Duplicate
                 </Button>
                 <Separator />
-                <Button onClick={handleDelete} variant="destructive" className="w-full justify-start">
+                <Button 
+                  onClick={handleDelete} 
+                  variant="destructive" 
+                  className="w-full justify-start"
+                  disabled={deleteProduct.isPending}
+                >
                   <Trash2 className="h-4 w-4 mr-2" />
-                  Delete
+                  {deleteProduct.isPending ? 'Deleting...' : 'Delete'}
                 </Button>
               </CardContent>
             </Card>
