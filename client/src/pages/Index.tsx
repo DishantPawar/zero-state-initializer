@@ -5,10 +5,10 @@ import { Button } from '@/components/ui/button';
 import { Grid3X3 } from 'lucide-react';
 
 const Index = () => {
-  const navigate = useNavigate();
+  const [location, setLocation] = useLocation();
 
   const handleAdminDashboard = () => {
-    navigate('/login');
+    setLocation('/login');
   };
 
   return (
@@ -31,7 +31,7 @@ const Index = () => {
             
             {/* Login */}
             <button 
-              onClick={() => navigate('/login')}
+              onClick={() => setLocation('/login')}
               className="text-gray-600 hover:text-gray-900 font-medium"
             >
               Login

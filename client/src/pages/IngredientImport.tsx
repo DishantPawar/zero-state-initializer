@@ -14,7 +14,7 @@ import * as XLSX from 'xlsx';
 const IngredientImport: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
-  const navigate = useNavigate();
+  const [location, setLocation] = useLocation();
   const { toast } = useToast();
   const createIngredient = useCreateIngredient();
 

@@ -15,7 +15,7 @@ import { Loader2 } from 'lucide-react';
 
 const IngredientForm: React.FC = () => {
   const { id } = useParams();
-  const navigate = useNavigate();
+  const [location, setLocation] = useLocation();
   const { toast } = useToast();
   const isEdit = !!id;
   
@@ -217,7 +217,7 @@ const IngredientForm: React.FC = () => {
                   ) : null}
                   {isEdit ? 'Update Ingredient' : 'Save Ingredient'}
                 </Button>
-                <Button type="button" variant="outline" onClick={() => navigate('/ingredients')}>
+                <Button type="button" variant="outline" onClick={() => setLocation('/ingredients')}>
                   Cancel
                 </Button>
               </div>

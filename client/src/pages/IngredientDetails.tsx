@@ -9,7 +9,7 @@ import { useIngredient } from '@/hooks/useIngredients';
 
 const IngredientDetails: React.FC = () => {
   const { id } = useParams();
-  const navigate = useNavigate();
+  const [location, setLocation] = useLocation();
   
   const { data: ingredient, isLoading } = useIngredient(id);
 
@@ -33,7 +33,7 @@ const IngredientDetails: React.FC = () => {
             <h1 className="text-2xl font-bold text-gray-900">Ingredient Not Found</h1>
             <p className="text-gray-600 mt-2">The ingredient you're looking for doesn't exist.</p>
             <Button 
-              onClick={() => navigate('/ingredients')}
+              onClick={() => setLocation('/ingredients')}
               className="mt-4"
             >
               Back to Ingredients
@@ -52,7 +52,7 @@ const IngredientDetails: React.FC = () => {
         <div className="mb-8">
           <Button
             variant="outline"
-            onClick={() => navigate('/ingredients')}
+            onClick={() => setLocation('/ingredients')}
             className="mb-4"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
