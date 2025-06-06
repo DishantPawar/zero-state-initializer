@@ -19,6 +19,7 @@ const ProductDetails: React.FC = () => {
   
   const { data: product, isLoading, error } = useProduct(id);
   const deleteProduct = useDeleteProduct();
+  const updateProductMutation = useUpdateProduct();
 
   if (isLoading) {
     return (
@@ -109,8 +110,6 @@ const ProductDetails: React.FC = () => {
       description: "Product form opened with current product data.",
     });
   };
-
-  const updateProductMutation = useUpdateProduct();
 
   const handleDeleteImage = async () => {
     if (window.confirm('Are you sure you want to delete this image?')) {
@@ -348,12 +347,12 @@ const ProductDetails: React.FC = () => {
                 <CardTitle>Certifications</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex gap-2">
                   {product.organic && <Badge variant="secondary">Organic</Badge>}
                   {product.vegetarian && <Badge variant="secondary">Vegetarian</Badge>}
                   {product.vegan && <Badge variant="secondary">Vegan</Badge>}
                   {!product.organic && !product.vegetarian && !product.vegan && (
-                    <p className="text-gray-500">No certifications specified</p>
+                    <span className="text-gray-500">No certifications</span>
                   )}
                 </div>
               </CardContent>
@@ -364,189 +363,166 @@ const ProductDetails: React.FC = () => {
               <CardHeader>
                 <CardTitle>Food Business Operator</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
+              <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <span className="font-medium text-gray-700">Type:</span>
+                  <span className="font-medium text-gray-700">Operator Type:</span>
                   <p className="text-gray-900">{product.operatorType || 'N/A'}</p>
                 </div>
                 <div>
-                  <span className="font-medium text-gray-700">Name:</span>
+                  <span className="font-medium text-gray-700">Operator Name:</span>
                   <p className="text-gray-900">{product.operatorName || 'N/A'}</p>
                 </div>
-                <div>
-                  <span className="font-medium text-gray-700">Address:</span>
+                <div className="md:col-span-2">
+                  <span className="font-medium text-gray-700">Operator Address:</span>
                   <p className="text-gray-900">{product.operatorAddress || 'N/A'}</p>
                 </div>
-                <div>
-                  <span className="font-medium text-gray-700">Additional Information:</span>
-                  <p className="text-gray-900">{product.additionalInfo || 'N/A'}</p>
-                </div>
+              </CardContent>
+            </Card>
+
+            {/* Additional Information */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Additional Information</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-700">
+                  {product.additionalInfo || 'No additional information available'}
+                </p>
               </CardContent>
             </Card>
           </div>
 
           {/* Sidebar */}
           <div className="space-y-6">
-            {/* QR Code & Links */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Digital Assets</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="text-center">
-                  <img 
-                    src={qrCodeUrl} 
-                    alt="QR Code" 
-                    className="mx-auto mb-2"
-                  />
-                  <p className="text-sm text-gray-600 mb-2">QR Code</p>
-                  <Button 
-                    onClick={handleDownloadQR}
-                    variant="outline" 
-                    size="sm"
-                    className="flex items-center gap-2"
-                  >
-                    <Download className="h-4 w-4" />
-                    Download QR Code
-                  </Button>
-                </div>
-                
-                <Separator />
-                
-                <div className="space-y-3">
-                  <div>
-                    <span className="font-medium text-gray-700">Label Public Link:</span>
-                    <div className="flex items-center gap-2 mt-1">
-                      <code className="bg-gray-100 px-2 py-1 rounded text-sm flex-1 truncate">
-                        {labelPublicLink}
-                      </code>
-                      <Button 
-                        size="sm" 
-                        variant="outline"
-                        onClick={() => handleCopyLink(labelPublicLink)}
-                      >
-                        <Copy className="h-4 w-4" />
-                      </Button>
-                      <Button 
-                        size="sm" 
-                        variant="outline"
-                        onClick={() => window.open(labelPublicLink, '_blank')}
-                      >
-                        <ExternalLink className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <span className="font-medium text-gray-700">External Short Link:</span>
-                    <div className="flex items-center gap-2 mt-1">
-                      <code className="bg-gray-100 px-2 py-1 rounded text-sm flex-1 truncate">
-                        {externalShortLink}
-                      </code>
-                      <Button 
-                        size="sm" 
-                        variant="outline"
-                        onClick={() => handleCopyLink(externalShortLink)}
-                      >
-                        <Copy className="h-4 w-4" />
-                      </Button>
-                      <Button 
-                        size="sm" 
-                        variant="outline"
-                        onClick={() => window.open(externalShortLink, '_blank')}
-                      >
-                        <ExternalLink className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <span className="font-medium text-gray-700">Redirect Link:</span>
-                    <div className="flex items-center gap-2 mt-1">
-                      <code className="bg-gray-100 px-2 py-1 rounded text-sm flex-1 truncate">
-                        {redirectLink}
-                      </code>
-                      <Button 
-                        size="sm" 
-                        variant="outline"
-                        onClick={() => handleCopyLink(redirectLink)}
-                      >
-                        <Copy className="h-4 w-4" />
-                      </Button>
-                      <Button 
-                        size="sm" 
-                        variant="outline"
-                        onClick={() => window.open(redirectLink, '_blank')}
-                      >
-                        <ExternalLink className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Audit Information */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Audit</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div>
-                  <span className="font-medium text-gray-700">Created on:</span>
-                  <p className="text-gray-900">
-                    {product.createdAt ? format(new Date(product.createdAt), 'M/d/yyyy h:mm:ss a') : 'N/A'}
-                  </p>
-                </div>
-                <div>
-                  <span className="font-medium text-gray-700">Created by:</span>
-                  <p className="text-gray-900">Admin</p>
-                </div>
-                <div>
-                  <span className="font-medium text-gray-700">Updated on:</span>
-                  <p className="text-gray-900">
-                    {product.updatedAt ? format(new Date(product.updatedAt), 'M/d/yyyy h:mm:ss a') : 'N/A'}
-                  </p>
-                </div>
-                <div>
-                  <span className="font-medium text-gray-700">Updated by:</span>
-                  <p className="text-gray-900">Admin</p>
-                </div>
-              </CardContent>
-            </Card>
-
             {/* Actions */}
             <Card>
               <CardHeader>
                 <CardTitle>Actions</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-2">
-                <Button onClick={handleEdit} className="w-full justify-start">
-                  <Edit className="h-4 w-4 mr-2" />
-                  Edit
+              <CardContent className="space-y-3">
+                <Button 
+                  onClick={handleEdit} 
+                  className="w-full flex items-center gap-2"
+                >
+                  <Edit className="h-4 w-4" />
+                  Edit Product
                 </Button>
-                <Button onClick={handleDeleteImage} variant="outline" className="w-full justify-start">
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Delete Image
-                </Button>
-                <Button onClick={handleChangeImage} variant="outline" className="w-full justify-start">
-                  <Edit className="h-4 w-4 mr-2" />
-                  Change Image
-                </Button>
-                <Button onClick={handleDuplicate} variant="outline" className="w-full justify-start">
-                  <Copy className="h-4 w-4 mr-2" />
+                
+                <Button 
+                  onClick={handleDuplicate} 
+                  variant="outline" 
+                  className="w-full flex items-center gap-2"
+                >
+                  <Copy className="h-4 w-4" />
                   Duplicate
                 </Button>
+                
                 <Separator />
+                
                 <Button 
                   onClick={handleDelete} 
                   variant="destructive" 
-                  className="w-full justify-start"
-                  disabled={deleteProduct.isPending}
+                  className="w-full flex items-center gap-2"
                 >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  {deleteProduct.isPending ? 'Deleting...' : 'Delete'}
+                  <Trash2 className="h-4 w-4" />
+                  Delete Product
                 </Button>
+              </CardContent>
+            </Card>
+
+            {/* QR Code */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <QrCode className="h-4 w-4" />
+                  QR Code
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="text-center space-y-4">
+                <img 
+                  src={qrCodeUrl} 
+                  alt="Product QR Code"
+                  className="w-32 h-32 mx-auto border rounded"
+                />
+                <div className="space-y-2">
+                  <Button 
+                    onClick={handleDownloadQR}
+                    variant="outline" 
+                    size="sm" 
+                    className="w-full"
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Download QR
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Links */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <ExternalLink className="h-4 w-4" />
+                  Links
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div>
+                  <p className="text-sm font-medium text-gray-700 mb-1">Label Public Link</p>
+                  <div className="flex gap-2">
+                    <input 
+                      type="text" 
+                      value={labelPublicLink} 
+                      readOnly 
+                      className="flex-1 text-xs p-2 border rounded bg-gray-50"
+                    />
+                    <Button 
+                      onClick={() => handleCopyLink(labelPublicLink)}
+                      variant="outline" 
+                      size="sm"
+                    >
+                      <Copy className="h-3 w-3" />
+                    </Button>
+                  </div>
+                </div>
+                
+                <div>
+                  <p className="text-sm font-medium text-gray-700 mb-1">External Short Link</p>
+                  <div className="flex gap-2">
+                    <input 
+                      type="text" 
+                      value={externalShortLink} 
+                      readOnly 
+                      className="flex-1 text-xs p-2 border rounded bg-gray-50"
+                    />
+                    <Button 
+                      onClick={() => handleCopyLink(externalShortLink)}
+                      variant="outline" 
+                      size="sm"
+                    >
+                      <Copy className="h-3 w-3" />
+                    </Button>
+                  </div>
+                </div>
+                
+                <div>
+                  <p className="text-sm font-medium text-gray-700 mb-1">Redirect Link</p>
+                  <div className="flex gap-2">
+                    <input 
+                      type="text" 
+                      value={redirectLink} 
+                      readOnly 
+                      className="flex-1 text-xs p-2 border rounded bg-gray-50"
+                    />
+                    <Button 
+                      onClick={() => handleCopyLink(redirectLink)}
+                      variant="outline" 
+                      size="sm"
+                    >
+                      <Copy className="h-3 w-3" />
+                    </Button>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </div>
