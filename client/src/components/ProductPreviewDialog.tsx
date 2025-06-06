@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Product } from '../data/mockData';
+import type { Product } from '@shared/schema';
 
 interface ProductPreviewDialogProps {
   product: Product | null;
@@ -37,7 +37,7 @@ const ProductPreviewDialog: React.FC<ProductPreviewDialogProps> = ({ product, op
                 </div>
                 <div>
                   <span className="font-medium">Alcohol:</span>
-                  <span className="ml-2">{product.alcohol}</span>
+                  <span className="ml-2">{product.alcoholContent ? `${product.alcoholContent}%` : 'N/A'}</span>
                 </div>
                 <div>
                   <span className="font-medium">Vintage:</span>
@@ -52,20 +52,20 @@ const ProductPreviewDialog: React.FC<ProductPreviewDialogProps> = ({ product, op
                   <span className="ml-2">{product.sugarContent}</span>
                 </div>
                 <div>
-                  <span className="font-medium">Country:</span>
-                  <span className="ml-2">{product.country}</span>
+                  <span className="font-medium">Region:</span>
+                  <span className="ml-2">{product.region || 'N/A'}</span>
                 </div>
                 <div>
                   <span className="font-medium">Appellation:</span>
-                  <span className="ml-2">{product.appellation}</span>
+                  <span className="ml-2">{product.appellation || 'N/A'}</span>
                 </div>
                 <div>
                   <span className="font-medium">SKU:</span>
-                  <span className="ml-2">{product.sku}</span>
+                  <span className="ml-2">{product.sku || 'N/A'}</span>
                 </div>
                 <div className="col-span-2">
-                  <span className="font-medium">EAN:</span>
-                  <span className="ml-2">{product.ean}</span>
+                  <span className="font-medium">Barcode:</span>
+                  <span className="ml-2">{product.barcode || 'N/A'}</span>
                 </div>
               </div>
             </div>

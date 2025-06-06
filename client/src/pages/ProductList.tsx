@@ -7,12 +7,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import Navigation from '../components/Navigation';
 import ProductPreviewDialog from '../components/ProductPreviewDialog';
-import { mockProducts, Product } from '../data/mockData';
 import { Plus, Search, Download, Upload, MoreHorizontal, Eye, FileText } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useProducts, useDeleteProduct } from '@/hooks/useProducts';
+import type { Product } from '@shared/schema';
 
 const ProductList: React.FC = () => {
-  const [products, setProducts] = useState<Product[]>(mockProducts);
+  const { data: products = [], isLoading, error } = useProducts();
+  const deleteProduct = useDeleteProduct();
   const [searchTerm, setSearchTerm] = useState('');
   const [previewProduct, setPreviewProduct] = useState<Product | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
@@ -20,9 +22,9 @@ const ProductList: React.FC = () => {
   const { toast } = useToast();
 
   const filteredProducts = products.filter(product =>
-    product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    product.brand.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    product.sku.toLowerCase().includes(searchTerm.toLowerCase())
+    product.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (product.brand && product.brand.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (product.sku && product.sku.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   const handleEdit = (id: string) => {
@@ -38,26 +40,25 @@ const ProductList: React.FC = () => {
     setPreviewOpen(true);
   };
 
-  const handleDelete = (id: string) => {
-    setProducts(products.filter(p => p.id !== id));
-    toast({
-      title: "Product deleted",
-      description: "Product has been successfully deleted.",
-    });
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteProduct.mutateAsync(id);
+      toast({
+        title: "Product deleted",
+        description: "Product has been successfully deleted.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete product.",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleDuplicate = (product: Product) => {
-    const newProduct = {
-      ...product,
-      id: Date.now().toString(),
-      name: `${product.name} (Copy)`,
-      sku: `${product.sku}-COPY`
-    };
-    setProducts([...products, newProduct]);
-    toast({
-      title: "Product duplicated",
-      description: "Product has been successfully duplicated.",
-    });
+    // Navigate to create form with pre-filled data
+    setLocation(`/products/new?duplicate=${product.id}`);
   };
 
   const handleImport = () => {

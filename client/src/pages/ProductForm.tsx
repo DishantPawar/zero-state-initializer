@@ -82,15 +82,56 @@ const ProductForm: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Validate required fields
+    if (!formData.name.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "Product name is required.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!formData.type) {
+      toast({
+        title: "Validation Error", 
+        description: "Wine type is required.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!formData.sugarContent) {
+      toast({
+        title: "Validation Error",
+        description: "Sugar content is required.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     try {
       const submitData = {
-        ...formData,
+        name: formData.name.trim(),
+        brand: formData.brand.trim() || null,
+        netVolume: formData.netVolume.trim() || null,
         vintage: formData.vintage,
+        type: formData.type,
+        sugarContent: formData.sugarContent,
+        appellation: formData.appellation.trim() || null,
+        sku: formData.sku.trim() || null,
+        barcode: formData.barcode.trim() || null,
+        qrCode: formData.qrCode.trim() || null,
         alcoholContent: formData.alcoholContent ? formData.alcoholContent : null,
         productionDate: formData.productionDate || null,
         expiryDate: formData.expiryDate || null,
+        description: formData.description.trim() || null,
+        producer: formData.producer.trim() || null,
+        region: formData.region.trim() || null,
+        grapeVarieties: formData.grapeVarieties.length > 0 ? formData.grapeVarieties : null,
         servingTemperatureMin: formData.servingTemperatureMin,
         servingTemperatureMax: formData.servingTemperatureMax,
+        storageInstructions: formData.storageInstructions.trim() || null,
       };
 
       if (isEdit && id) {
@@ -109,9 +150,10 @@ const ProductForm: React.FC = () => {
       
       setLocation('/products');
     } catch (error) {
+      console.error('Product save error:', error);
       toast({
         title: "Error",
-        description: "Failed to save product. Please try again.",
+        description: "Failed to save product. Please check all required fields.",
         variant: "destructive"
       });
     }
