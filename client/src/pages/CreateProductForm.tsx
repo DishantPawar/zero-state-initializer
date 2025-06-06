@@ -63,8 +63,15 @@ export default function CreateProductForm() {
         title: "Success",
         description: "Product created successfully!",
       });
+      // Clear form data
+      form.reset();
+      // Invalidate and refetch products
       queryClient.invalidateQueries({ queryKey: ["/api/products"] });
-      setLocation("/products");
+      queryClient.refetchQueries({ queryKey: ["/api/products"] });
+      // Navigate back to products list
+      setTimeout(() => {
+        setLocation("/products");
+      }, 100);
     },
     onError: (error: any) => {
       toast({
@@ -76,12 +83,12 @@ export default function CreateProductForm() {
   });
 
   const onSubmit = (data: InsertProduct) => {
-    // Convert string boolean values to actual booleans
+    // Convert text input values to booleans for certification fields
     const processedData = {
       ...data,
-      organic: data.organic === 'true' || data.organic === true,
-      vegetarian: data.vegetarian === 'true' || data.vegetarian === true,
-      vegan: data.vegan === 'true' || data.vegan === true,
+      organic: data.organic === true || (typeof data.organic === 'string' && data.organic.toLowerCase() === 'true'),
+      vegetarian: data.vegetarian === true || (typeof data.vegetarian === 'string' && data.vegetarian.toLowerCase() === 'true'),
+      vegan: data.vegan === true || (typeof data.vegan === 'string' && data.vegan.toLowerCase() === 'true'),
     };
     createProductMutation.mutate(processedData);
   };
