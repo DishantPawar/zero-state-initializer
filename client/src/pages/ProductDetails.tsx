@@ -105,7 +105,7 @@ const ProductDetails: React.FC = () => {
           <div className="flex items-center gap-4 mb-4">
             <Button 
               variant="outline" 
-              onClick={() => navigate('/products')}
+              onClick={() => setLocation('/products')}
               className="flex items-center gap-2"
             >
               <ArrowLeft className="h-4 w-4" />

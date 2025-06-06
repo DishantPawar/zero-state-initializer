@@ -51,7 +51,7 @@ const IngredientList: React.FC = () => {
   };
 
   const handleImport = () => {
-    navigate('/ingredients/import');
+    setLocation('/ingredients/import');
   };
 
   const handleExport = () => {
@@ -100,7 +100,7 @@ const IngredientList: React.FC = () => {
             <div className="flex flex-col sm:flex-row gap-4 justify-between">
               <div className="flex gap-2">
                 <Button 
-                  onClick={() => navigate('/ingredients/create')}
+                  onClick={() => setLocation('/ingredients/create')}
                   className="bg-green-600 hover:bg-green-700"
                 >
                   <Plus className="h-4 w-4 mr-2" />

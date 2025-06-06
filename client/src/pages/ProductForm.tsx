@@ -72,7 +72,7 @@ const ProductForm: React.FC = () => {
       description: `Product ${formData.name} has been successfully ${isEdit ? 'updated' : 'created'}.`,
     });
     
-    navigate('/products');
+    setLocation('/products');
   };
 
   return (
@@ -434,7 +434,7 @@ const ProductForm: React.FC = () => {
             <Button type="submit" className="bg-purple-600 hover:bg-purple-700">
               {isEdit ? 'Update Product' : 'Create Product'}
             </Button>
-            <Button type="button" variant="outline" onClick={() => navigate('/products')}>
+            <Button type="button" variant="outline" onClick={() => setLocation('/products')}>
               Cancel
             </Button>
           </div>
