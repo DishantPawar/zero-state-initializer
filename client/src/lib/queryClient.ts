@@ -34,5 +34,16 @@ export const apiRequest = async (url: string, options: RequestInit = {}) => {
     throw new Error(`HTTP error! status: ${response.status}`);
   }
 
-  return response.json();
+  // Handle 204 No Content responses
+  if (response.status === 204) {
+    return null;
+  }
+
+  // Check if response has content before parsing JSON
+  const contentType = response.headers.get('content-type');
+  if (contentType && contentType.includes('application/json')) {
+    return response.json();
+  }
+
+  return null;
 };

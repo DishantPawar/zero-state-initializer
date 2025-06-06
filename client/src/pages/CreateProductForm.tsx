@@ -65,9 +65,9 @@ export default function CreateProductForm() {
       });
       // Clear form data
       form.reset();
-      // Invalidate and refetch products
-      queryClient.invalidateQueries({ queryKey: ["/api/products"] });
-      queryClient.refetchQueries({ queryKey: ["/api/products"] });
+      // Invalidate and refetch products using the correct query key
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      queryClient.refetchQueries({ queryKey: ['products'] });
       // Navigate back to products list
       setTimeout(() => {
         setLocation("/products");
