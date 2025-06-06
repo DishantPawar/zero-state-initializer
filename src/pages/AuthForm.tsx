@@ -1,13 +1,14 @@
 
-import React, { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Mail, AlertCircle } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 interface LocationState {
   from?: {
@@ -20,14 +21,28 @@ const AuthForm: React.FC = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isRegisterMode, setIsRegisterMode] = useState(false);
+  const [verificationSent, setVerificationSent] = useState(false);
   const { login, register, isLoading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
   
   // Get redirect path from location state or default to products
   const locationState = location.state as LocationState;
   const from = locationState?.from?.pathname || '/products';
+
+  // Check if there's a message in the URL (e.g. after email verification)
+  const message = searchParams.get('message');
+  
+  useEffect(() => {
+    if (message === 'verified') {
+      toast({
+        title: "Email verified",
+        description: "Your email has been verified. You can now log in.",
+      });
+    }
+  }, [message, toast]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,7 +70,7 @@ const AuthForm: React.FC = () => {
 
     try {
       await register(email, password);
-      navigate(from, { replace: true });
+      setVerificationSent(true);
     } catch (error) {
       console.error('Registration error:', error);
       // Error handling is done in the register function
@@ -74,6 +89,26 @@ const AuthForm: React.FC = () => {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
+          {verificationSent && (
+            <Alert>
+              <Mail className="h-4 w-4" />
+              <AlertTitle>Verification email sent!</AlertTitle>
+              <AlertDescription>
+                Please check your email and click the verification link before attempting to log in.
+              </AlertDescription>
+            </Alert>
+          )}
+          
+          {message === 'verification-error' && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Verification error</AlertTitle>
+              <AlertDescription>
+                There was an error verifying your email. Please try again or contact support.
+              </AlertDescription>
+            </Alert>
+          )}
+          
           <form onSubmit={isRegisterMode ? handleRegister : handleLogin} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email" className="text-sm font-medium text-gray-700">
@@ -82,12 +117,12 @@ const AuthForm: React.FC = () => {
               <Input
                 id="email"
                 type="email"
-                placeholder="a90685766@gmail.com"
+                placeholder="your.email@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="h-12 bg-gray-100 border-0 text-gray-900 placeholder:text-gray-500"
                 required
-                disabled={isLoading}
+                disabled={isLoading || verificationSent}
               />
             </div>
             
@@ -103,7 +138,7 @@ const AuthForm: React.FC = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 className="h-12 bg-gray-100 border-0 text-gray-900"
                 required
-                disabled={isLoading}
+                disabled={isLoading || verificationSent}
               />
             </div>
             
@@ -120,7 +155,7 @@ const AuthForm: React.FC = () => {
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   className="h-12 bg-gray-100 border-0 text-gray-900"
                   required
-                  disabled={isLoading}
+                  disabled={isLoading || verificationSent}
                 />
               </div>
             )}
@@ -128,7 +163,7 @@ const AuthForm: React.FC = () => {
             <Button 
               type="submit" 
               className="w-full h-12 bg-gray-900 hover:bg-gray-800 text-white font-medium mt-6"
-              disabled={isLoading}
+              disabled={isLoading || verificationSent}
             >
               {isLoading ? (
                 <span className="flex items-center">
@@ -152,6 +187,7 @@ const AuthForm: React.FC = () => {
                   setEmail('');
                   setPassword('');
                   setConfirmPassword('');
+                  setVerificationSent(false);
                 }}
                 disabled={isLoading}
               >

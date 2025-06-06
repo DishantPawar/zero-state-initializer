@@ -7,6 +7,7 @@ interface User {
   id: string;
   email: string;
   name: string;
+  email_confirmed_at?: string | null;
 }
 
 interface AuthContextType {
@@ -16,6 +17,7 @@ interface AuthContextType {
   logout: () => void;
   isAuthenticated: boolean;
   isLoading: boolean;
+  isEmailConfirmed: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -47,7 +49,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setUser({
           id: data.session.user.id,
           email: data.session.user.email || '',
-          name: data.session.user.email?.split('@')[0] || ''
+          name: data.session.user.email?.split('@')[0] || '',
+          email_confirmed_at: data.session.user.email_confirmed_at
         });
       }
       
@@ -63,10 +66,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           setUser({
             id: session.user.id,
             email: session.user.email || '',
-            name: session.user.email?.split('@')[0] || ''
+            name: session.user.email?.split('@')[0] || '',
+            email_confirmed_at: session.user.email_confirmed_at
           });
         } else if (event === 'SIGNED_OUT') {
           setUser(null);
+        } else if (event === 'USER_UPDATED') {
+          if (session?.user) {
+            setUser({
+              id: session.user.id,
+              email: session.user.email || '',
+              name: session.user.email?.split('@')[0] || '',
+              email_confirmed_at: session.user.email_confirmed_at
+            });
+          }
         }
       }
     );
@@ -95,10 +108,22 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
 
       if (data.user) {
+        if (!data.user.email_confirmed_at) {
+          toast({
+            title: "Email not confirmed",
+            description: "Please check your email and confirm your account before logging in.",
+            variant: "destructive"
+          });
+          await supabase.auth.signOut();
+          setUser(null);
+          throw new Error("Email not confirmed");
+        }
+        
         setUser({
           id: data.user.id,
           email: data.user.email || '',
-          name: data.user.email?.split('@')[0] || ''
+          name: data.user.email?.split('@')[0] || '',
+          email_confirmed_at: data.user.email_confirmed_at
         });
         
         toast({
@@ -118,7 +143,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/products`
+          emailRedirectTo: `${window.location.origin}/login`
         }
       });
 
@@ -132,16 +157,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
 
       if (data.user) {
-        setUser({
-          id: data.user.id,
-          email: data.user.email || '',
-          name: data.user.email?.split('@')[0] || ''
-        });
-        
+        // Don't automatically set the user - they need to confirm their email first
         toast({
           title: "Registration successful",
-          description: "Your account has been created!"
+          description: "Please check your email to confirm your account before logging in.",
         });
+        
+        // Sign out immediately since we require email confirmation
+        await supabase.auth.signOut();
+        setUser(null);
       }
     } finally {
       setIsLoading(false);
@@ -163,13 +187,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  const isEmailConfirmed = !!user?.email_confirmed_at;
+
   const value = {
     user,
     login,
     register,
     logout,
-    isAuthenticated: !!user,
-    isLoading
+    isAuthenticated: !!user && isEmailConfirmed,
+    isLoading,
+    isEmailConfirmed
   };
 
   return (
