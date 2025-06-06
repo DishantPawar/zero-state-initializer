@@ -2,9 +2,10 @@
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { Router, Route, Switch, Redirect, useLocation } from "wouter";
 import { AuthProvider, useAuth } from "./context/AuthContext";
+import { queryClient } from "./lib/queryClient";
 import AdminDashboard from "./pages/AdminDashboard";
 import AuthForm from "./pages/AuthForm";
 import ProductList from "./pages/ProductList";
@@ -18,12 +19,10 @@ import IngredientImport from "./pages/IngredientImport";
 import NotFound from "./pages/NotFound";
 import { Loader2 } from "lucide-react";
 
-const queryClient = new QueryClient();
-
 // Protected Route wrapper with loading state
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, isLoading } = useAuth();
-  const location = useLocation();
+  const [location] = useLocation();
 
   if (isLoading) {
     return (
@@ -37,8 +36,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   }
 
   if (!isAuthenticated) {
-    // Save the location they tried to access for redirect after login
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    return <Redirect to="/login" />;
   }
 
   return <>{children}</>;
@@ -47,7 +45,6 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 // Public Route wrapper (redirect to products if already authenticated)
 const PublicRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, isLoading } = useAuth();
-  const location = useLocation();
   
   if (isLoading) {
     return (
@@ -60,11 +57,8 @@ const PublicRoute = ({ children }: { children: React.ReactNode }) => {
     );
   }
   
-  // If they're authenticated, redirect them to where they were trying to go
-  // or to the default products page
   if (isAuthenticated) {
-    const destination = location.state?.from?.pathname || "/products";
-    return <Navigate to={destination} replace />;
+    return <Redirect to="/products" />;
   }
 
   return <>{children}</>;
@@ -72,105 +66,71 @@ const PublicRoute = ({ children }: { children: React.ReactNode }) => {
 
 const AppRoutes = () => {
   return (
-    <Routes>
-      <Route 
-        path="/" 
-        element={
-          <ProtectedRoute>
-            <AdminDashboard />
-          </ProtectedRoute>
-        } 
-      />
-      <Route 
-        path="/login" 
-        element={
-          <PublicRoute>
-            <AuthForm />
-          </PublicRoute>
-        } 
-      />
-      <Route 
-        path="/products" 
-        element={
-          <ProtectedRoute>
-            <ProductList />
-          </ProtectedRoute>
-        } 
-      />
-      <Route 
-        path="/products/create" 
-        element={
-          <ProtectedRoute>
-            <ProductForm />
-          </ProtectedRoute>
-        } 
-      />
-      <Route 
-        path="/products/edit/:id" 
-        element={
-          <ProtectedRoute>
-            <ProductForm />
-          </ProtectedRoute>
-        } 
-      />
-      <Route 
-        path="/products/details/:id" 
-        element={
-          <ProtectedRoute>
-            <ProductDetails />
-          </ProtectedRoute>
-        } 
-      />
-      <Route 
-        path="/products/import" 
-        element={
-          <ProtectedRoute>
-            <ProductImport />
-          </ProtectedRoute>
-        } 
-      />
-      <Route 
-        path="/ingredients" 
-        element={
-          <ProtectedRoute>
-            <IngredientList />
-          </ProtectedRoute>
-        } 
-      />
-      <Route 
-        path="/ingredients/create" 
-        element={
-          <ProtectedRoute>
-            <IngredientForm />
-          </ProtectedRoute>
-        } 
-      />
-      <Route 
-        path="/ingredients/edit/:id" 
-        element={
-          <ProtectedRoute>
-            <IngredientForm />
-          </ProtectedRoute>
-        } 
-      />
-      <Route 
-        path="/ingredients/details/:id" 
-        element={
-          <ProtectedRoute>
-            <IngredientDetails />
-          </ProtectedRoute>
-        } 
-      />
-      <Route 
-        path="/ingredients/import" 
-        element={
-          <ProtectedRoute>
-            <IngredientImport />
-          </ProtectedRoute>
-        } 
-      />
-      <Route path="*" element={<NotFound />} />
-    </Routes>
+    <Switch>
+      <Route path="/">
+        <ProtectedRoute>
+          <AdminDashboard />
+        </ProtectedRoute>
+      </Route>
+      <Route path="/login">
+        <PublicRoute>
+          <AuthForm />
+        </PublicRoute>
+      </Route>
+      <Route path="/products">
+        <ProtectedRoute>
+          <ProductList />
+        </ProtectedRoute>
+      </Route>
+      <Route path="/products/create">
+        <ProtectedRoute>
+          <ProductForm />
+        </ProtectedRoute>
+      </Route>
+      <Route path="/products/edit/:id">
+        <ProtectedRoute>
+          <ProductForm />
+        </ProtectedRoute>
+      </Route>
+      <Route path="/products/details/:id">
+        <ProtectedRoute>
+          <ProductDetails />
+        </ProtectedRoute>
+      </Route>
+      <Route path="/products/import">
+        <ProtectedRoute>
+          <ProductImport />
+        </ProtectedRoute>
+      </Route>
+      <Route path="/ingredients">
+        <ProtectedRoute>
+          <IngredientList />
+        </ProtectedRoute>
+      </Route>
+      <Route path="/ingredients/create">
+        <ProtectedRoute>
+          <IngredientForm />
+        </ProtectedRoute>
+      </Route>
+      <Route path="/ingredients/edit/:id">
+        <ProtectedRoute>
+          <IngredientForm />
+        </ProtectedRoute>
+      </Route>
+      <Route path="/ingredients/details/:id">
+        <ProtectedRoute>
+          <IngredientDetails />
+        </ProtectedRoute>
+      </Route>
+      <Route path="/ingredients/import">
+        <ProtectedRoute>
+          <IngredientImport />
+        </ProtectedRoute>
+      </Route>
+      <Route>
+        <NotFound />
+      </Route>
+    </Switch>
   );
 };
 
@@ -180,9 +140,9 @@ const App = () => (
       <Toaster />
       <Sonner />
       <AuthProvider>
-        <BrowserRouter>
+        <Router>
           <AppRoutes />
-        </BrowserRouter>
+        </Router>
       </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
