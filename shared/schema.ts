@@ -10,26 +10,47 @@ export const users = pgTable("users", {
 
 export const products = pgTable("products", {
   id: uuid("id").primaryKey().defaultRandom(),
+  
+  // Product Information
   name: text("name").notNull(),
   brand: text("brand"),
   netVolume: text("net_volume"),
-  vintage: integer("vintage"),
-  type: text("type"),
+  
+  // Wine Details
+  vintage: text("vintage"),
+  wineType: text("wine_type"),
   sugarContent: text("sugar_content"),
   appellation: text("appellation"),
-  sku: text("sku"),
-  barcode: text("barcode"),
-  qrCode: text("qr_code"),
-  alcoholContent: numeric("alcohol_content"),
-  productionDate: date("production_date"),
-  expiryDate: date("expiry_date"),
-  description: text("description"),
-  producer: text("producer"),
-  region: text("region"),
-  grapeVarieties: text("grape_varieties").array(),
-  servingTemperatureMin: integer("serving_temperature_min"),
-  servingTemperatureMax: integer("serving_temperature_max"),
-  storageInstructions: text("storage_instructions"),
+  alcoholContent: text("alcohol_content"),
+  
+  // Ingredients
+  packagingGases: text("packaging_gases"),
+  
+  // Nutrition Information
+  portionSize: text("portion_size"),
+  unit: text("unit"),
+  kj: text("kj"),
+  fat: text("fat"),
+  carbohydrates: text("carbohydrates"),
+  
+  // Certifications
+  organic: boolean("organic").default(false),
+  vegetarian: boolean("vegetarian").default(false),
+  vegan: boolean("vegan").default(false),
+  
+  // Food Business Operator
+  operatorType: text("operator_type"),
+  operatorName: text("operator_name"),
+  operatorAddress: text("operator_address"),
+  additionalInformation: text("additional_information"),
+  
+  // Logistics
+  countryOfOrigin: text("country_of_origin"),
+  ean: text("ean"),
+  
+  // Portability
+  barcodeLink: text("barcode_link"),
+  
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
