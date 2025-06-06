@@ -23,6 +23,7 @@ export default function CreateProductForm() {
       name: "",
       brand: "",
       netVolume: "",
+      imageUrl: "",
       vintage: "",
       wineType: "",
       sugarContent: "",
@@ -58,20 +59,28 @@ export default function CreateProductForm() {
         body: JSON.stringify(product),
       });
     },
-    onSuccess: () => {
+    onSuccess: (newProduct) => {
       toast({
         title: "Success",
         description: "Product created successfully!",
       });
+      
       // Clear form data
       form.reset();
-      // Invalidate and refetch products using the correct query key
+      
+      // Update the products cache immediately for instant display
+      queryClient.setQueryData(['products'], (oldData: any[] | undefined) => {
+        if (oldData) {
+          return [...oldData, newProduct];
+        }
+        return [newProduct];
+      });
+      
+      // Also invalidate to ensure data consistency
       queryClient.invalidateQueries({ queryKey: ['products'] });
-      queryClient.refetchQueries({ queryKey: ['products'] });
-      // Navigate back to products list
-      setTimeout(() => {
-        setLocation("/products");
-      }, 100);
+      
+      // Navigate back to products list immediately
+      setLocation("/products");
     },
     onError: (error: any) => {
       toast({

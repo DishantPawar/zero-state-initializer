@@ -15,6 +15,7 @@ export const products = pgTable("products", {
   name: text("name").notNull(),
   brand: text("brand"),
   netVolume: text("net_volume"),
+  imageUrl: text("image_url"),
   
   // Wine Details
   vintage: text("vintage"),

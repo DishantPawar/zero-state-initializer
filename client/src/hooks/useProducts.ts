@@ -39,8 +39,16 @@ export const useCreateProduct = () => {
       });
       return response as Product;
     },
-    onSuccess: () => {
+    onSuccess: (newProduct) => {
+      // Invalidate and refetch products list
       queryClient.invalidateQueries({ queryKey: ['products'] });
+      // Also add the new product to cache immediately for instant display
+      queryClient.setQueryData(['products'], (oldData: Product[] | undefined) => {
+        if (oldData) {
+          return [...oldData, newProduct];
+        }
+        return [newProduct];
+      });
       toast({
         title: "Success",
         description: "Product created successfully",
@@ -69,8 +77,26 @@ export const useUpdateProduct = () => {
       });
       return response as Product;
     },
-    onSuccess: () => {
+    onSuccess: (updatedProduct, variables) => {
+      const { id } = variables;
+      
+      // Update products list cache
+      queryClient.setQueryData(['products'], (oldData: Product[] | undefined) => {
+        if (oldData) {
+          return oldData.map(product => 
+            product.id === id ? updatedProduct : product
+          );
+        }
+        return [updatedProduct];
+      });
+      
+      // Update individual product cache
+      queryClient.setQueryData(['product', id], updatedProduct);
+      
+      // Invalidate to ensure consistency
       queryClient.invalidateQueries({ queryKey: ['products'] });
+      queryClient.invalidateQueries({ queryKey: ['product', id] });
+      
       toast({
         title: "Success",
         description: "Product updated successfully",
@@ -95,9 +121,23 @@ export const useDeleteProduct = () => {
       await apiRequest(`/api/products/${id}`, {
         method: 'DELETE'
       });
+      return id;
     },
-    onSuccess: () => {
+    onSuccess: (deletedId) => {
+      // Remove from products list cache immediately
+      queryClient.setQueryData(['products'], (oldData: Product[] | undefined) => {
+        if (oldData) {
+          return oldData.filter(product => product.id !== deletedId);
+        }
+        return [];
+      });
+      
+      // Remove individual product cache
+      queryClient.removeQueries({ queryKey: ['product', deletedId] });
+      
+      // Invalidate to ensure consistency
       queryClient.invalidateQueries({ queryKey: ['products'] });
+      
       toast({
         title: "Success",
         description: "Product deleted successfully",
