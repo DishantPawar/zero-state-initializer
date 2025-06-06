@@ -1,7 +1,7 @@
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import { users, products, ingredients, productIngredients, type User, type InsertUser, type Product, type InsertProduct, type Ingredient, type InsertIngredient, type ProductIngredient, type InsertProductIngredient } from "@shared/schema";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 
 const connectionString = process.env.DATABASE_URL!;
 const client = postgres(connectionString);
@@ -116,8 +116,10 @@ export class DatabaseStorage implements IStorage {
 
   async removeProductIngredient(productId: string, ingredientId: string): Promise<void> {
     await db.delete(productIngredients)
-      .where(eq(productIngredients.productId, productId))
-      .where(eq(productIngredients.ingredientId, ingredientId));
+      .where(and(
+        eq(productIngredients.productId, productId),
+        eq(productIngredients.ingredientId, ingredientId)
+      ));
   }
 }
 
