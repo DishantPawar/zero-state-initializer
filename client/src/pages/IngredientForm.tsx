@@ -89,11 +89,11 @@ const IngredientForm: React.FC = () => {
 
     if (isEdit && id) {
       updateIngredient.mutate({ id, ...ingredientData }, {
-        onSuccess: () => navigate('/ingredients')
+        onSuccess: () => setLocation('/ingredients')
       });
     } else {
       createIngredient.mutate(ingredientData, {
-        onSuccess: () => navigate('/ingredients')
+        onSuccess: () => setLocation('/ingredients')
       });
     }
   };

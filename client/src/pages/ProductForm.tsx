@@ -14,7 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 
 const ProductForm: React.FC = () => {
   const { id } = useParams();
-  const navigate = useNavigate();
+  const [location, setLocation] = useLocation();
   const { toast } = useToast();
   const isEdit = !!id;
   

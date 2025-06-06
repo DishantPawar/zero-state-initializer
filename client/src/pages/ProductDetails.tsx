@@ -11,7 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 
 const ProductDetails: React.FC = () => {
   const { id } = useParams();
-  const navigate = useNavigate();
+  const [location, setLocation] = useLocation();
   const { toast } = useToast();
   
   const product = mockProducts.find(p => p.id === id);

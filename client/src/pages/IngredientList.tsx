@@ -14,7 +14,7 @@ import * as XLSX from 'xlsx';
 
 const IngredientList: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const navigate = useNavigate();
+  const [location, setLocation] = useLocation();
   const { toast } = useToast();
   
   const { data: ingredients = [], isLoading } = useIngredients();
