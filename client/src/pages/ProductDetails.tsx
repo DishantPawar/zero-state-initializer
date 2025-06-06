@@ -23,7 +23,7 @@ const ProductDetails: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center">
             <h1 className="text-2xl font-bold text-gray-900">Product Not Found</h1>
-            <Button onClick={() => navigate('/products')} className="mt-4">
+            <Button onClick={() => setLocation('/products')} className="mt-4">
               Back to Products
             </Button>
           </div>
@@ -33,7 +33,7 @@ const ProductDetails: React.FC = () => {
   }
 
   const handleEdit = () => {
-    navigate(`/products/edit/${id}`);
+    setLocation(`/products/edit/${id}`);
   };
 
   const handleDelete = () => {
@@ -41,7 +41,7 @@ const ProductDetails: React.FC = () => {
       title: "Product deleted",
       description: "Product has been successfully deleted.",
     });
-    navigate('/products');
+    setLocation('/products');
   };
 
   const handleDuplicate = () => {

@@ -12,7 +12,7 @@ import * as XLSX from 'xlsx';
 const ProductImport: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
-  const navigate = useNavigate();
+  const [location, setLocation] = useLocation();
   const { toast } = useToast();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -59,7 +59,7 @@ const ProductImport: React.FC = () => {
           description: `Successfully imported ${jsonData.length} products`,
         });
         
-        navigate('/products');
+        setLocation('/products');
       };
       reader.readAsArrayBuffer(file);
     } catch (error) {
@@ -81,7 +81,7 @@ const ProductImport: React.FC = () => {
         <div className="mb-8">
           <Button 
             variant="outline" 
-            onClick={() => navigate('/products')}
+            onClick={() => setLocation('/products')}
             className="mb-4"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />

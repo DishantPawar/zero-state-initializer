@@ -28,7 +28,7 @@ const IngredientList: React.FC = () => {
   );
 
   const handleEdit = (id: string) => {
-    navigate(`/ingredients/edit/${id}`);
+    setLocation(`/ingredients/edit/${id}`);
   };
 
   const handleDelete = (id: string) => {
@@ -36,7 +36,7 @@ const IngredientList: React.FC = () => {
   };
 
   const handleDetails = (id: string) => {
-    navigate(`/ingredients/details/${id}`);
+    setLocation(`/ingredients/details/${id}`);
   };
 
   const handleDuplicate = (ingredient: Ingredient) => {
