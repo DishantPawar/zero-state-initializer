@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation, useParams } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,8 +9,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Navigation from '../components/Navigation';
-import { mockProducts } from '../data/mockData';
 import { useToast } from '@/hooks/use-toast';
+import { useProduct, useCreateProduct, useUpdateProduct } from '@/hooks/useProducts';
 
 const ProductForm: React.FC = () => {
   const { id } = useParams();
@@ -18,37 +18,59 @@ const ProductForm: React.FC = () => {
   const { toast } = useToast();
   const isEdit = !!id;
   
-  const existingProduct = isEdit ? mockProducts.find(p => p.id === id) : null;
+  const { data: existingProduct, isLoading: productLoading } = useProduct(id);
+  const createProduct = useCreateProduct();
+  const updateProduct = useUpdateProduct();
   
   const [formData, setFormData] = useState({
-    name: existingProduct?.name || '',
-    brand: existingProduct?.brand || '',
-    netVolume: existingProduct?.netVolume || '',
-    vintage: existingProduct?.vintage || '',
-    type: existingProduct?.type || '',
-    sugarContent: existingProduct?.sugarContent || '',
-    appellation: existingProduct?.appellation || '',
-    alcohol: existingProduct?.alcohol || '',
-    country: existingProduct?.country || '',
-    sku: existingProduct?.sku || '',
-    ean: existingProduct?.ean || '',
-    // Additional fields
-    packagingGases: '',
-    portion: '',
-    kcal: '',
-    kj: '',
-    fat: '',
-    carbs: '',
-    organic: false,
-    vegetarian: false,
-    vegan: false,
-    operatorType: '',
-    operatorName: '',
-    operatorAddress: '',
-    operatorAdditionalInfo: '',
-    externalLink: '',
-    redirectLink: ''
+    name: '',
+    brand: '',
+    netVolume: '',
+    vintage: null as number | null,
+    type: '',
+    sugarContent: '',
+    appellation: '',
+    barcode: '',
+    qrCode: '',
+    alcoholContent: null as number | null,
+    productionDate: null as string | null,
+    expiryDate: null as string | null,
+    description: '',
+    producer: '',
+    region: '',
+    grapeVarieties: [] as string[],
+    servingTemperatureMin: null as number | null,
+    servingTemperatureMax: null as number | null,
+    storageInstructions: '',
+    sku: ''
   });
+
+  useEffect(() => {
+    if (existingProduct && isEdit) {
+      setFormData({
+        name: existingProduct.name || '',
+        brand: existingProduct.brand || '',
+        netVolume: existingProduct.netVolume || '',
+        vintage: existingProduct.vintage,
+        type: existingProduct.type || '',
+        sugarContent: existingProduct.sugarContent || '',
+        appellation: existingProduct.appellation || '',
+        barcode: existingProduct.barcode || '',
+        qrCode: existingProduct.qrCode || '',
+        alcoholContent: existingProduct.alcoholContent ? Number(existingProduct.alcoholContent) : null,
+        productionDate: existingProduct.productionDate,
+        expiryDate: existingProduct.expiryDate,
+        description: existingProduct.description || '',
+        producer: existingProduct.producer || '',
+        region: existingProduct.region || '',
+        grapeVarieties: existingProduct.grapeVarieties || [],
+        servingTemperatureMin: existingProduct.servingTemperatureMin,
+        servingTemperatureMax: existingProduct.servingTemperatureMax,
+        storageInstructions: existingProduct.storageInstructions || '',
+        sku: existingProduct.sku || ''
+      });
+    }
+  }, [existingProduct, isEdit]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -63,16 +85,38 @@ const ProductForm: React.FC = () => {
     setFormData(prev => ({ ...prev, [name]: checked }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Form data:', formData);
     
-    toast({
-      title: isEdit ? "Product updated" : "Product created",
-      description: `Product ${formData.name} has been successfully ${isEdit ? 'updated' : 'created'}.`,
-    });
-    
-    setLocation('/products');
+    try {
+      const submitData = {
+        ...formData,
+        vintage: formData.vintage ? Number(formData.vintage) : null,
+        alcoholContent: formData.alcoholContent ? String(formData.alcoholContent) : null,
+      };
+
+      if (isEdit && id) {
+        await updateProduct.mutateAsync({ id, ...submitData });
+        toast({
+          title: "Product updated",
+          description: `Product ${formData.name} has been successfully updated.`,
+        });
+      } else {
+        await createProduct.mutateAsync(submitData);
+        toast({
+          title: "Product created",
+          description: `Product ${formData.name} has been successfully created.`,
+        });
+      }
+      
+      setLocation('/products');
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to save product. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   return (
