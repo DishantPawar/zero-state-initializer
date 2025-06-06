@@ -1,7 +1,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertProductSchema } from "@shared/schema";
-import { useCreateProduct } from "@/hooks/useProducts";
+import { useCreateProduct, useProduct } from "@/hooks/useProducts";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -12,11 +12,17 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
 import { Edit3 } from "lucide-react";
+import { useEffect } from "react";
 
 export default function CreateProduct() {
   const { toast } = useToast();
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
   const createProduct = useCreateProduct();
+  
+  // Check if we're duplicating a product
+  const urlParams = new URLSearchParams(window.location.search);
+  const duplicateId = urlParams.get('duplicate');
+  const { data: productToDuplicate } = useProduct(duplicateId || undefined);
 
   const form = useForm({
     resolver: zodResolver(insertProductSchema),
@@ -47,6 +53,38 @@ export default function CreateProduct() {
       barcodeLink: "",
     },
   });
+
+  // Pre-fill form when duplicating a product
+  useEffect(() => {
+    if (productToDuplicate) {
+      form.reset({
+        name: `${productToDuplicate.name} (Copy)`,
+        brand: productToDuplicate.brand || "",
+        netVolume: productToDuplicate.netVolume || "",
+        vintage: productToDuplicate.vintage || "",
+        wineType: productToDuplicate.wineType || "",
+        sugarContent: productToDuplicate.sugarContent || "",
+        appellation: productToDuplicate.appellation || "",
+        alcoholContent: productToDuplicate.alcoholContent || "",
+        packagingGases: productToDuplicate.packagingGases || "",
+        portionSize: productToDuplicate.portionSize || "",
+        unit: productToDuplicate.unit || "",
+        kj: productToDuplicate.kj || "",
+        fat: productToDuplicate.fat || "",
+        carbohydrates: productToDuplicate.carbohydrates || "",
+        organic: productToDuplicate.organic || false,
+        vegetarian: productToDuplicate.vegetarian || false,
+        vegan: productToDuplicate.vegan || false,
+        operatorType: productToDuplicate.operatorType || "",
+        operatorName: productToDuplicate.operatorName || "",
+        operatorAddress: productToDuplicate.operatorAddress || "",
+        additionalInformation: productToDuplicate.additionalInformation || "",
+        countryOfOrigin: productToDuplicate.countryOfOrigin || "",
+        ean: "", // Clear EAN for duplicate
+        barcodeLink: productToDuplicate.barcodeLink || "",
+      });
+    }
+  }, [productToDuplicate, form]);
 
   const onSubmit = async (data: any) => {
     try {

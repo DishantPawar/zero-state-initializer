@@ -24,7 +24,7 @@ const ProductList: React.FC = () => {
   const filteredProducts = products.filter(product =>
     product.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (product.brand && product.brand.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    (product.sku && product.sku.toLowerCase().includes(searchTerm.toLowerCase()))
+    (product.ean && product.ean.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   const handleEdit = (id: string) => {
@@ -58,7 +58,7 @@ const ProductList: React.FC = () => {
 
   const handleDuplicate = (product: Product) => {
     // Navigate to create form with pre-filled data
-    setLocation(`/products/new?duplicate=${product.id}`);
+    setLocation(`/products/create?duplicate=${product.id}`);
   };
 
   const handleImport = () => {
@@ -72,10 +72,10 @@ const ProductList: React.FC = () => {
         Brand: product.brand,
         'Net Volume': product.netVolume,
         Vintage: product.vintage,
-        Type: product.type,
+        'Wine Type': product.wineType,
         'Sugar Content': product.sugarContent,
         Appellation: product.appellation,
-        SKU: product.sku
+        EAN: product.ean
       })));
       
       const workbook = XLSX.utils.book_new();
@@ -140,10 +140,10 @@ const ProductList: React.FC = () => {
                   <TableHead>Name</TableHead>
                   <TableHead>Net Volume</TableHead>
                   <TableHead>Vintage</TableHead>
-                  <TableHead>Type</TableHead>
+                  <TableHead>Wine Type</TableHead>
                   <TableHead>Sugar Content</TableHead>
                   <TableHead>Appellation</TableHead>
-                  <TableHead>SKU</TableHead>
+                  <TableHead>EAN</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -153,10 +153,10 @@ const ProductList: React.FC = () => {
                     <TableCell className="font-medium">{product.name}</TableCell>
                     <TableCell>{product.netVolume}</TableCell>
                     <TableCell>{product.vintage}</TableCell>
-                    <TableCell>{product.type}</TableCell>
+                    <TableCell>{product.wineType}</TableCell>
                     <TableCell>{product.sugarContent}</TableCell>
                     <TableCell>{product.appellation}</TableCell>
-                    <TableCell>{product.sku}</TableCell>
+                    <TableCell>{product.ean}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
                         <Button
