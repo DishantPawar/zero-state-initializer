@@ -2,6 +2,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,6 +17,8 @@ export default function CreateProductForm() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const form = useForm<InsertProduct>({
     resolver: zodResolver(insertProductSchema),
@@ -51,12 +54,20 @@ export default function CreateProductForm() {
 
   const createProductMutation = useMutation({
     mutationFn: async (product: InsertProduct) => {
+      let finalProduct = { ...product };
+      
+      // Convert image to base64 if selected
+      if (selectedFile) {
+        const base64Image = await convertFileToBase64(selectedFile);
+        finalProduct.imageUrl = base64Image;
+      }
+      
       return await apiRequest("/api/products", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(product),
+        body: JSON.stringify(finalProduct),
       });
     },
     onSuccess: (newProduct) => {
@@ -65,8 +76,10 @@ export default function CreateProductForm() {
         description: "Product created successfully!",
       });
       
-      // Clear form data
+      // Clear form data and image state
       form.reset();
+      setImagePreview(null);
+      setSelectedFile(null);
       
       // Update the products cache immediately for instant display
       queryClient.setQueryData(['products'], (oldData: any[] | undefined) => {
@@ -100,6 +113,38 @@ export default function CreateProductForm() {
       vegan: data.vegan === true || (typeof data.vegan === 'string' && (data.vegan as string).toLowerCase() === 'true'),
     };
     createProductMutation.mutate(processedData);
+  };
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) { // 2MB limit
+        toast({
+          title: "File too large",
+          description: "Please select an image smaller than 2MB",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      setSelectedFile(file);
+      
+      // Create preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const convertFileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
   };
 
   const handleCancel = () => {
@@ -149,12 +194,23 @@ export default function CreateProductForm() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="imageUrl">Product Image URL</Label>
+                <Label htmlFor="imageFile">Product Image</Label>
                 <Input
-                  id="imageUrl"
-                  {...form.register("imageUrl")}
-                  placeholder="https://example.com/image.jpg"
+                  id="imageFile"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100"
                 />
+                {imagePreview && (
+                  <div className="mt-2">
+                    <img 
+                      src={imagePreview} 
+                      alt="Preview" 
+                      className="w-32 h-32 object-cover rounded border"
+                    />
+                  </div>
+                )}
               </div>
             </div>
           </CardContent>

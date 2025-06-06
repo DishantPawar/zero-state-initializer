@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useRef } from 'react';
 import { useLocation, useParams } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import Navigation from '../components/Navigation';
 import { useProduct, useDeleteProduct, useUpdateProduct } from '../hooks/useProducts';
-import { ArrowLeft, Edit, Trash2, Copy, QrCode, ExternalLink, Download } from 'lucide-react';
+import { ArrowLeft, Edit, Trash2, Copy, QrCode, ExternalLink, Download, Upload } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { queryClient } from '../lib/queryClient';
 import { format } from 'date-fns';
@@ -16,6 +16,7 @@ const ProductDetails: React.FC = () => {
   const { id } = useParams();
   const [location, setLocation] = useLocation();
   const { toast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const { data: product, isLoading, error } = useProduct(id);
   const deleteProduct = useDeleteProduct();
@@ -130,12 +131,47 @@ const ProductDetails: React.FC = () => {
   };
 
   const handleChangeImage = () => {
-    const newImageUrl = prompt('Enter new image URL:');
-    if (newImageUrl && newImageUrl.trim()) {
-      updateProductMutation.mutate({
-        id: product.id,
-        imageUrl: newImageUrl.trim()
-      });
+    fileInputRef.current?.click();
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) { // 2MB limit
+        toast({
+          title: "File too large",
+          description: "Please select an image smaller than 2MB",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      try {
+        // Convert file to base64
+        const base64 = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+
+        // Update product with new image
+        updateProductMutation.mutate({
+          id: product.id,
+          imageUrl: base64
+        });
+
+        toast({
+          title: "Image uploaded",
+          description: "Product image has been updated successfully.",
+        });
+      } catch (error) {
+        toast({
+          title: "Upload failed",
+          description: "Failed to upload image. Please try again.",
+          variant: "destructive",
+        });
+      }
     }
   };
 
@@ -213,14 +249,23 @@ const ProductDetails: React.FC = () => {
                   Product Image
                   <div className="flex gap-2">
                     <Button variant="outline" size="sm" onClick={handleChangeImage}>
-                      Change Image
+                      <Upload className="h-4 w-4 mr-2" />
+                      Upload Image
                     </Button>
                     {product.imageUrl && (
                       <Button variant="outline" size="sm" onClick={handleDeleteImage}>
+                        <Trash2 className="h-4 w-4 mr-2" />
                         Delete Image
                       </Button>
                     )}
                   </div>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileUpload}
+                    style={{ display: 'none' }}
+                  />
                 </CardTitle>
               </CardHeader>
               <CardContent>
