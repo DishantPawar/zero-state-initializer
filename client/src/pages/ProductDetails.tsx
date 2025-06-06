@@ -261,11 +261,11 @@ const ProductDetails: React.FC = () => {
               </CardHeader>
               <CardContent>
                 <p className="text-gray-700">
-                  Grapes, sulfur dioxide (E220), potassium sorbate (E202). Contains sulfites.
+                  {product.ingredients || 'No ingredients specified'}
                 </p>
                 <div className="mt-4">
                   <span className="font-medium text-gray-700">Packaging Gases:</span>
-                  <p className="text-gray-900">Nitrogen, Carbon dioxide</p>
+                  <p className="text-gray-900">{product.packagingGases || 'No packaging gases specified'}</p>
                 </div>
               </CardContent>
             </Card>
@@ -278,23 +278,19 @@ const ProductDetails: React.FC = () => {
               <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div>
                   <span className="font-medium text-gray-700">Portion Size:</span>
-                  <p className="text-gray-900">100ml</p>
-                </div>
-                <div>
-                  <span className="font-medium text-gray-700">kcal:</span>
-                  <p className="text-gray-900">83</p>
+                  <p className="text-gray-900">{product.portionSize || 'N/A'} {product.unit || ''}</p>
                 </div>
                 <div>
                   <span className="font-medium text-gray-700">kJ:</span>
-                  <p className="text-gray-900">347</p>
+                  <p className="text-gray-900">{product.kj || 'N/A'}</p>
                 </div>
                 <div>
                   <span className="font-medium text-gray-700">Fat:</span>
-                  <p className="text-gray-900">0g</p>
+                  <p className="text-gray-900">{product.fat || 'N/A'}</p>
                 </div>
                 <div>
                   <span className="font-medium text-gray-700">Carbohydrates:</span>
-                  <p className="text-gray-900">2.6g</p>
+                  <p className="text-gray-900">{product.carbohydrates || 'N/A'}</p>
                 </div>
               </CardContent>
             </Card>
@@ -306,9 +302,12 @@ const ProductDetails: React.FC = () => {
               </CardHeader>
               <CardContent>
                 <div className="flex flex-wrap gap-2">
-                  <Badge variant="secondary">Organic</Badge>
-                  <Badge variant="secondary">Vegetarian</Badge>
-                  <Badge variant="secondary">Vegan</Badge>
+                  {product.organic && <Badge variant="secondary">Organic</Badge>}
+                  {product.vegetarian && <Badge variant="secondary">Vegetarian</Badge>}
+                  {product.vegan && <Badge variant="secondary">Vegan</Badge>}
+                  {!product.organic && !product.vegetarian && !product.vegan && (
+                    <p className="text-gray-500">No certifications specified</p>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -321,19 +320,19 @@ const ProductDetails: React.FC = () => {
               <CardContent className="space-y-3">
                 <div>
                   <span className="font-medium text-gray-700">Type:</span>
-                  <p className="text-gray-900">Producer</p>
+                  <p className="text-gray-900">{product.operatorType || 'N/A'}</p>
                 </div>
                 <div>
                   <span className="font-medium text-gray-700">Name:</span>
-                  <p className="text-gray-900">Château Example</p>
+                  <p className="text-gray-900">{product.operatorName || 'N/A'}</p>
                 </div>
                 <div>
                   <span className="font-medium text-gray-700">Address:</span>
-                  <p className="text-gray-900">123 Vineyard Road, Bordeaux, France</p>
+                  <p className="text-gray-900">{product.operatorAddress || 'N/A'}</p>
                 </div>
                 <div>
                   <span className="font-medium text-gray-700">Additional Information:</span>
-                  <p className="text-gray-900">Family-owned winery established in 1850</p>
+                  <p className="text-gray-900">{product.additionalInfo || 'N/A'}</p>
                 </div>
               </CardContent>
             </Card>
@@ -374,7 +373,18 @@ const ProductDetails: React.FC = () => {
                       <code className="bg-gray-100 px-2 py-1 rounded text-sm flex-1 truncate">
                         {labelPublicLink}
                       </code>
-                      <Button size="sm" variant="outline">
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => handleCopyLink(labelPublicLink)}
+                      >
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => window.open(labelPublicLink, '_blank')}
+                      >
                         <ExternalLink className="h-4 w-4" />
                       </Button>
                     </div>
@@ -383,10 +393,21 @@ const ProductDetails: React.FC = () => {
                   <div>
                     <span className="font-medium text-gray-700">External Short Link:</span>
                     <div className="flex items-center gap-2 mt-1">
-                      <code className="bg-gray-100 px-2 py-1 rounded text-sm flex-1">
-                        https://short.ly/abc123
+                      <code className="bg-gray-100 px-2 py-1 rounded text-sm flex-1 truncate">
+                        {externalShortLink}
                       </code>
-                      <Button size="sm" variant="outline">
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => handleCopyLink(externalShortLink)}
+                      >
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => window.open(externalShortLink, '_blank')}
+                      >
                         <ExternalLink className="h-4 w-4" />
                       </Button>
                     </div>
@@ -395,10 +416,21 @@ const ProductDetails: React.FC = () => {
                   <div>
                     <span className="font-medium text-gray-700">Redirect Link:</span>
                     <div className="flex items-center gap-2 mt-1">
-                      <code className="bg-gray-100 px-2 py-1 rounded text-sm flex-1">
-                        https://redirect.com/wine123
+                      <code className="bg-gray-100 px-2 py-1 rounded text-sm flex-1 truncate">
+                        {redirectLink}
                       </code>
-                      <Button size="sm" variant="outline">
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => handleCopyLink(redirectLink)}
+                      >
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => window.open(redirectLink, '_blank')}
+                      >
                         <ExternalLink className="h-4 w-4" />
                       </Button>
                     </div>
@@ -415,7 +447,9 @@ const ProductDetails: React.FC = () => {
               <CardContent className="space-y-3">
                 <div>
                   <span className="font-medium text-gray-700">Created on:</span>
-                  <p className="text-gray-900">5/31/2025 1:01:41 AM</p>
+                  <p className="text-gray-900">
+                    {product.createdAt ? format(new Date(product.createdAt), 'M/d/yyyy h:mm:ss a') : 'N/A'}
+                  </p>
                 </div>
                 <div>
                   <span className="font-medium text-gray-700">Created by:</span>
@@ -423,7 +457,9 @@ const ProductDetails: React.FC = () => {
                 </div>
                 <div>
                   <span className="font-medium text-gray-700">Updated on:</span>
-                  <p className="text-gray-900">5/31/2025 1:02:10 AM</p>
+                  <p className="text-gray-900">
+                    {product.updatedAt ? format(new Date(product.updatedAt), 'M/d/yyyy h:mm:ss a') : 'N/A'}
+                  </p>
                 </div>
                 <div>
                   <span className="font-medium text-gray-700">Updated by:</span>
