@@ -24,6 +24,7 @@ export const products = pgTable("products", {
   alcoholContent: text("alcohol_content"),
   
   // Ingredients
+  ingredients: text("ingredients"),
   packagingGases: text("packaging_gases"),
   
   // Nutrition Information
@@ -42,7 +43,7 @@ export const products = pgTable("products", {
   operatorType: text("operator_type"),
   operatorName: text("operator_name"),
   operatorAddress: text("operator_address"),
-  additionalInformation: text("additional_information"),
+  additionalInfo: text("additional_info"),
   
   // Logistics
   countryOfOrigin: text("country_of_origin"),

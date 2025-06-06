@@ -11,6 +11,7 @@ import AuthForm from "./pages/AuthForm";
 import ProductList from "./pages/ProductList";
 import ProductForm from "./pages/ProductForm";
 import CreateProduct from "./pages/CreateProduct";
+import CreateProductForm from "./pages/CreateProductForm";
 import ProductDetails from "./pages/ProductDetails";
 import IngredientList from "./pages/IngredientList";
 import IngredientForm from "./pages/IngredientForm";
@@ -85,7 +86,12 @@ const AppRoutes = () => {
       </Route>
       <Route path="/products/create">
         <ProtectedRoute>
-          <CreateProduct />
+          <CreateProductForm />
+        </ProtectedRoute>
+      </Route>
+      <Route path="/products/create-form">
+        <ProtectedRoute>
+          <CreateProductForm />
         </ProtectedRoute>
       </Route>
       <Route path="/products/edit/:id">
