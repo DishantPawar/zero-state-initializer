@@ -10,6 +10,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import AuthForm from "./pages/AuthForm";
 import ProductList from "./pages/ProductList";
 import ProductForm from "./pages/ProductForm";
+import CreateProduct from "./pages/CreateProduct";
 import ProductDetails from "./pages/ProductDetails";
 import IngredientList from "./pages/IngredientList";
 import IngredientForm from "./pages/IngredientForm";
@@ -84,7 +85,7 @@ const AppRoutes = () => {
       </Route>
       <Route path="/products/create">
         <ProtectedRoute>
-          <ProductForm />
+          <CreateProduct />
         </ProtectedRoute>
       </Route>
       <Route path="/products/edit/:id">
