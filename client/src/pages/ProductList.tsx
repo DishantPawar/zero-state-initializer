@@ -138,6 +138,7 @@ const ProductList: React.FC = () => {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead>Image</TableHead>
                   <TableHead>Name</TableHead>
                   <TableHead>Net Volume</TableHead>
                   <TableHead>Vintage</TableHead>
@@ -151,6 +152,20 @@ const ProductList: React.FC = () => {
               <TableBody>
                 {filteredProducts.map((product) => (
                   <TableRow key={product.id} className="hover:bg-gray-50">
+                    <TableCell>
+                      <div className="w-10 h-10 bg-gray-100 rounded flex items-center justify-center overflow-hidden">
+                        {product.imageUrl ? (
+                          <img 
+                            src={product.imageUrl} 
+                            alt={product.name}
+                            className="w-full h-full object-cover"
+                            key={`${product.id}-${product.updatedAt}`}
+                          />
+                        ) : (
+                          <span className="text-xs text-gray-400">No Image</span>
+                        )}
+                      </div>
+                    </TableCell>
                     <TableCell className="font-medium">{product.name}</TableCell>
                     <TableCell>{product.netVolume}</TableCell>
                     <TableCell>{product.vintage}</TableCell>
