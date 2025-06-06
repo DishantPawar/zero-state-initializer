@@ -4,19 +4,52 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 import Navigation from '../components/Navigation';
-import { mockProducts } from '../data/mockData';
+import { useProduct, useDeleteProduct } from '../hooks/useProducts';
 import { ArrowLeft, Edit, Trash2, Copy, QrCode, ExternalLink, Download } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { queryClient } from '../lib/queryClient';
+import { format } from 'date-fns';
 
 const ProductDetails: React.FC = () => {
   const { id } = useParams();
   const [location, setLocation] = useLocation();
   const { toast } = useToast();
   
-  const product = mockProducts.find(p => p.id === id);
+  const { data: product, isLoading, error } = useProduct(id);
+  const deleteProduct = useDeleteProduct();
 
-  if (!product) {
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Navigation />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="mb-8">
+            <Skeleton className="h-8 w-32 mb-4" />
+            <Skeleton className="h-10 w-64 mb-2" />
+            <Skeleton className="h-6 w-32" />
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2 space-y-6">
+              <Card>
+                <CardHeader><Skeleton className="h-6 w-32" /></CardHeader>
+                <CardContent><Skeleton className="h-64 w-full" /></CardContent>
+              </Card>
+            </div>
+            <div className="space-y-6">
+              <Card>
+                <CardHeader><Skeleton className="h-6 w-32" /></CardHeader>
+                <CardContent><Skeleton className="h-48 w-full" /></CardContent>
+              </Card>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !product) {
     return (
       <div className="min-h-screen bg-gray-50">
         <Navigation />
@@ -36,18 +69,41 @@ const ProductDetails: React.FC = () => {
     setLocation(`/products/edit/${id}`);
   };
 
-  const handleDelete = () => {
-    toast({
-      title: "Product deleted",
-      description: "Product has been successfully deleted.",
-    });
-    setLocation('/products');
+  const handleDelete = async () => {
+    if (window.confirm('Are you sure you want to delete this product?')) {
+      try {
+        await deleteProduct.mutateAsync(id!);
+        toast({
+          title: "Product deleted",
+          description: "Product has been successfully deleted.",
+        });
+        setLocation('/products');
+      } catch (error) {
+        toast({
+          title: "Delete failed",
+          description: "Failed to delete product. Please try again.",
+          variant: "destructive",
+        });
+      }
+    }
   };
 
   const handleDuplicate = () => {
+    // Create a new product with same data but different name
+    const duplicateData = {
+      ...product,
+      name: `${product.name} (Copy)`,
+      id: undefined,
+      createdAt: undefined,
+      updatedAt: undefined,
+    };
+    
+    // Navigate to create form with pre-filled data
+    setLocation('/products/create');
+    
     toast({
-      title: "Product duplicated",
-      description: "Product has been successfully duplicated.",
+      title: "Ready to duplicate",
+      description: "Product form opened with current product data.",
     });
   };
 
@@ -91,9 +147,22 @@ const ProductDetails: React.FC = () => {
     }
   };
 
-  // Generate QR code URL (using a QR code service)
-  const labelPublicLink = `http://localhost:5206/l/${product.id}`;
-  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(labelPublicLink)}`;
+  const handleCopyLink = (link: string) => {
+    navigator.clipboard.writeText(link);
+    toast({
+      title: "Link copied",
+      description: "Link has been copied to clipboard.",
+    });
+  };
+
+  // Generate QR code URL from barcode link or product URL
+  const barcodeOrProductLink = product.barcodeLink || `${window.location.origin}/products/details/${product.id}`;
+  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(barcodeOrProductLink)}`;
+  
+  // Generate various links
+  const labelPublicLink = `${window.location.origin}/products/details/${product.id}`;
+  const externalShortLink = product.barcodeLink || `https://short.ly/${product.ean || product.id}`;
+  const redirectLink = product.barcodeLink || `https://redirect.com/${product.ean || product.id}`;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -148,43 +217,39 @@ const ProductDetails: React.FC = () => {
                 </div>
                 <div>
                   <span className="font-medium text-gray-700">Brand:</span>
-                  <p className="text-gray-900">{product.brand}</p>
+                  <p className="text-gray-900">{product.brand || 'N/A'}</p>
                 </div>
                 <div>
                   <span className="font-medium text-gray-700">Net Volume:</span>
-                  <p className="text-gray-900">{product.netVolume}</p>
+                  <p className="text-gray-900">{product.netVolume || 'N/A'}</p>
                 </div>
                 <div>
                   <span className="font-medium text-gray-700">Vintage:</span>
-                  <p className="text-gray-900">{product.vintage}</p>
+                  <p className="text-gray-900">{product.vintage || 'N/A'}</p>
                 </div>
                 <div>
-                  <span className="font-medium text-gray-700">Type:</span>
-                  <p className="text-gray-900">{product.type}</p>
+                  <span className="font-medium text-gray-700">Wine Type:</span>
+                  <p className="text-gray-900">{product.wineType || 'N/A'}</p>
                 </div>
                 <div>
                   <span className="font-medium text-gray-700">Sugar Content:</span>
-                  <p className="text-gray-900">{product.sugarContent}</p>
+                  <p className="text-gray-900">{product.sugarContent || 'N/A'}</p>
                 </div>
                 <div>
                   <span className="font-medium text-gray-700">Appellation:</span>
-                  <p className="text-gray-900">{product.appellation}</p>
+                  <p className="text-gray-900">{product.appellation || 'N/A'}</p>
                 </div>
                 <div>
                   <span className="font-medium text-gray-700">Alcohol Content:</span>
-                  <p className="text-gray-900">{product.alcohol}</p>
+                  <p className="text-gray-900">{product.alcoholContent || 'N/A'}</p>
                 </div>
                 <div>
-                  <span className="font-medium text-gray-700">Country:</span>
-                  <p className="text-gray-900">{product.country}</p>
+                  <span className="font-medium text-gray-700">Country of Origin:</span>
+                  <p className="text-gray-900">{product.countryOfOrigin || 'N/A'}</p>
                 </div>
                 <div>
-                  <span className="font-medium text-gray-700">SKU:</span>
-                  <p className="text-gray-900">{product.sku}</p>
-                </div>
-                <div className="md:col-span-2">
                   <span className="font-medium text-gray-700">EAN:</span>
-                  <p className="text-gray-900">{product.ean}</p>
+                  <p className="text-gray-900">{product.ean || 'N/A'}</p>
                 </div>
               </CardContent>
             </Card>
