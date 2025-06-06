@@ -95,9 +95,9 @@ export default function CreateProductForm() {
     // Convert text input values to booleans for certification fields
     const processedData = {
       ...data,
-      organic: data.organic === true || (typeof data.organic === 'string' && data.organic.toLowerCase() === 'true'),
-      vegetarian: data.vegetarian === true || (typeof data.vegetarian === 'string' && data.vegetarian.toLowerCase() === 'true'),
-      vegan: data.vegan === true || (typeof data.vegan === 'string' && data.vegan.toLowerCase() === 'true'),
+      organic: data.organic === true || (typeof data.organic === 'string' && (data.organic as string).toLowerCase() === 'true'),
+      vegetarian: data.vegetarian === true || (typeof data.vegetarian === 'string' && (data.vegetarian as string).toLowerCase() === 'true'),
+      vegan: data.vegan === true || (typeof data.vegan === 'string' && (data.vegan as string).toLowerCase() === 'true'),
     };
     createProductMutation.mutate(processedData);
   };
@@ -146,6 +146,14 @@ export default function CreateProductForm() {
                   id="netVolume"
                   {...form.register("netVolume")}
                   placeholder="e.g., 750ml"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="imageUrl">Product Image URL</Label>
+                <Input
+                  id="imageUrl"
+                  {...form.register("imageUrl")}
+                  placeholder="https://example.com/image.jpg"
                 />
               </div>
             </div>

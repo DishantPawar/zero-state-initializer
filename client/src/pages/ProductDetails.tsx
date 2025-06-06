@@ -6,7 +6,7 @@ import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import Navigation from '../components/Navigation';
-import { useProduct, useDeleteProduct } from '../hooks/useProducts';
+import { useProduct, useDeleteProduct, useUpdateProduct } from '../hooks/useProducts';
 import { ArrowLeft, Edit, Trash2, Copy, QrCode, ExternalLink, Download } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { queryClient } from '../lib/queryClient';
@@ -110,18 +110,34 @@ const ProductDetails: React.FC = () => {
     });
   };
 
-  const handleDeleteImage = () => {
-    toast({
-      title: "Image deleted",
-      description: "Product image has been successfully deleted.",
-    });
+  const updateProductMutation = useUpdateProduct();
+
+  const handleDeleteImage = async () => {
+    if (window.confirm('Are you sure you want to delete this image?')) {
+      try {
+        await updateProductMutation.mutateAsync({
+          id: product.id,
+          imageUrl: null
+        });
+        // Cache will be automatically updated by the mutation
+      } catch (error: any) {
+        toast({
+          title: "Error",
+          description: "Failed to delete image: " + error.message,
+          variant: "destructive",
+        });
+      }
+    }
   };
 
   const handleChangeImage = () => {
-    toast({
-      title: "Change image",
-      description: "Image change functionality will be implemented.",
-    });
+    const newImageUrl = prompt('Enter new image URL:');
+    if (newImageUrl && newImageUrl.trim()) {
+      updateProductMutation.mutate({
+        id: product.id,
+        imageUrl: newImageUrl.trim()
+      });
+    }
   };
 
   const handleDownloadQR = async () => {
@@ -194,15 +210,43 @@ const ProductDetails: React.FC = () => {
             {/* Product Image */}
             <Card>
               <CardHeader>
-                <CardTitle>Product Image</CardTitle>
+                <CardTitle className="flex items-center justify-between">
+                  Product Image
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" onClick={handleChangeImage}>
+                      Change Image
+                    </Button>
+                    {product.imageUrl && (
+                      <Button variant="outline" size="sm" onClick={handleDeleteImage}>
+                        Delete Image
+                      </Button>
+                    )}
+                  </div>
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="flex flex-col items-center space-y-4">
-                  <div className="w-full max-w-md bg-gray-100 rounded-lg flex items-center justify-center h-64">
-                    <span className="text-gray-500">Product Image Placeholder</span>
+                  <div className="w-full max-w-md bg-gray-100 rounded-lg flex items-center justify-center h-64 overflow-hidden">
+                    {product.imageUrl ? (
+                      <img 
+                        src={product.imageUrl} 
+                        alt={product.name}
+                        className="w-full h-full object-cover rounded-lg"
+                        key={`${product.id}-${product.updatedAt}`} // Force re-render on updates
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).style.display = 'none';
+                          const placeholder = document.createElement('span');
+                          placeholder.textContent = 'Image not available';
+                          placeholder.className = 'text-gray-500';
+                          (e.target as HTMLImageElement).parentNode?.appendChild(placeholder);
+                        }}
+                      />
+                    ) : (
+                      <span className="text-gray-500">No Image Available</span>
+                    )}
                   </div>
                   <p className="text-sm text-gray-500">
-                    Image Dimensions: 125×64, 250×129, 500×258, 1000×517, 1500×775, 2000×1034
+                    Supported formats: JPG, PNG, WebP. Max size: 2MB
                   </p>
                 </div>
               </CardContent>
