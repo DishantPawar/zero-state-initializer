@@ -6,20 +6,25 @@ import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import Navigation from '../components/Navigation';
-import { mockIngredients, Ingredient } from '../data/mockData';
-import { Plus, Search, Download, Upload, MoreHorizontal, FileText } from 'lucide-react';
+import { Plus, Search, Download, Upload, MoreHorizontal, FileText, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useIngredients, useDeleteIngredient, useCreateIngredient } from '@/hooks/useIngredients';
+import { Ingredient } from '@/types/database';
+import * as XLSX from 'xlsx';
 
 const IngredientList: React.FC = () => {
-  const [ingredients, setIngredients] = useState<Ingredient[]>(mockIngredients);
   const [searchTerm, setSearchTerm] = useState('');
   const navigate = useNavigate();
   const { toast } = useToast();
+  
+  const { data: ingredients = [], isLoading } = useIngredients();
+  const deleteIngredient = useDeleteIngredient();
+  const createIngredient = useCreateIngredient();
 
   const filteredIngredients = ingredients.filter(ingredient =>
     ingredient.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     ingredient.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    ingredient.eNumber.toLowerCase().includes(searchTerm.toLowerCase())
+    (ingredient.e_number && ingredient.e_number.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   const handleEdit = (id: string) => {
@@ -27,11 +32,7 @@ const IngredientList: React.FC = () => {
   };
 
   const handleDelete = (id: string) => {
-    setIngredients(ingredients.filter(i => i.id !== id));
-    toast({
-      title: "Ingredient deleted",
-      description: "Ingredient has been successfully deleted.",
-    });
+    deleteIngredient.mutate(id);
   };
 
   const handleDetails = (id: string) => {
@@ -40,16 +41,13 @@ const IngredientList: React.FC = () => {
 
   const handleDuplicate = (ingredient: Ingredient) => {
     const newIngredient = {
-      ...ingredient,
-      id: Date.now().toString(),
       name: `${ingredient.name} (Copy)`,
-      eNumber: ingredient.eNumber ? `${ingredient.eNumber}-COPY` : ''
+      category: ingredient.category,
+      e_number: ingredient.e_number ? `${ingredient.e_number}-COPY` : null,
+      other_ingredient: ingredient.other_ingredient,
+      allergens: ingredient.allergens || []
     };
-    setIngredients([...ingredients, newIngredient]);
-    toast({
-      title: "Ingredient duplicated",
-      description: "Ingredient has been successfully duplicated.",
-    });
+    createIngredient.mutate(newIngredient);
   };
 
   const handleImport = () => {
@@ -57,25 +55,35 @@ const IngredientList: React.FC = () => {
   };
 
   const handleExport = () => {
-    import('xlsx').then((XLSX) => {
-      const worksheet = XLSX.utils.json_to_sheet(ingredients.map(ingredient => ({
-        Name: ingredient.name,
-        Category: ingredient.category,
-        'E Number': ingredient.eNumber || '',
-        Allergens: ingredient.allergens.join(', ')
-      })));
-      
-      const workbook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(workbook, worksheet, 'Ingredients');
-      
-      XLSX.writeFile(workbook, 'ingredients.xlsx');
-      
-      toast({
-        title: "Export successful",
-        description: "Ingredients exported to Excel file",
-      });
+    const worksheet = XLSX.utils.json_to_sheet(ingredients.map(ingredient => ({
+      Name: ingredient.name,
+      Category: ingredient.category,
+      'E Number': ingredient.e_number || '',
+      'Other Ingredient': ingredient.other_ingredient || '',
+      Allergens: ingredient.allergens?.join(', ') || ''
+    })));
+    
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Ingredients');
+    
+    XLSX.writeFile(workbook, 'ingredients.xlsx');
+    
+    toast({
+      title: "Export successful",
+      description: "Ingredients exported to Excel file",
     });
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Navigation />
+        <div className="flex items-center justify-center min-h-[400px]">
+          <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -136,9 +144,9 @@ const IngredientList: React.FC = () => {
                   <TableRow key={ingredient.id} className="hover:bg-gray-50">
                     <TableCell className="font-medium">{ingredient.name}</TableCell>
                     <TableCell>{ingredient.category}</TableCell>
-                    <TableCell>{ingredient.eNumber || '-'}</TableCell>
+                    <TableCell>{ingredient.e_number || '-'}</TableCell>
                     <TableCell>
-                      {ingredient.allergens.length > 0 ? (
+                      {ingredient.allergens && ingredient.allergens.length > 0 ? (
                         <div className="flex flex-wrap gap-1">
                           {ingredient.allergens.map((allergen, index) => (
                             <span

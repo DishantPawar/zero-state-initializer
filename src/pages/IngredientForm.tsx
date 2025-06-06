@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,8 +9,9 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Navigation from '../components/Navigation';
-import { mockIngredients } from '../data/mockData';
 import { useToast } from '@/hooks/use-toast';
+import { useIngredient, useCreateIngredient, useUpdateIngredient } from '@/hooks/useIngredients';
+import { Loader2 } from 'lucide-react';
 
 const IngredientForm: React.FC = () => {
   const { id } = useParams();
@@ -18,15 +19,29 @@ const IngredientForm: React.FC = () => {
   const { toast } = useToast();
   const isEdit = !!id;
   
-  const existingIngredient = isEdit ? mockIngredients.find(i => i.id === id) : null;
+  const { data: existingIngredient, isLoading } = useIngredient(id);
+  const createIngredient = useCreateIngredient();
+  const updateIngredient = useUpdateIngredient();
   
   const [formData, setFormData] = useState({
-    name: existingIngredient?.name || '',
-    category: existingIngredient?.category || '',
+    name: '',
+    category: '',
     otherIngredient: '',
-    eNumber: existingIngredient?.eNumber || '',
-    allergens: existingIngredient?.allergens || []
+    eNumber: '',
+    allergens: [] as string[]
   });
+
+  useEffect(() => {
+    if (existingIngredient) {
+      setFormData({
+        name: existingIngredient.name || '',
+        category: existingIngredient.category || '',
+        otherIngredient: existingIngredient.other_ingredient || '',
+        eNumber: existingIngredient.e_number || '',
+        allergens: existingIngredient.allergens || []
+      });
+    }
+  }, [existingIngredient]);
 
   const allergenOptions = [
     'gluten',
@@ -63,15 +78,36 @@ const IngredientForm: React.FC = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Form data:', formData);
     
-    toast({
-      title: isEdit ? "Ingredient updated" : "Ingredient created",
-      description: `Ingredient ${formData.name} has been successfully ${isEdit ? 'updated' : 'created'}.`,
-    });
-    
-    navigate('/ingredients');
+    const ingredientData = {
+      name: formData.name,
+      category: formData.category as any,
+      e_number: formData.eNumber || null,
+      other_ingredient: formData.otherIngredient || null,
+      allergens: formData.allergens
+    };
+
+    if (isEdit && id) {
+      updateIngredient.mutate({ id, ...ingredientData }, {
+        onSuccess: () => navigate('/ingredients')
+      });
+    } else {
+      createIngredient.mutate(ingredientData, {
+        onSuccess: () => navigate('/ingredients')
+      });
+    }
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Navigation />
+        <div className="flex items-center justify-center min-h-[400px]">
+          <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -171,7 +207,14 @@ const IngredientForm: React.FC = () => {
               </div>
 
               <div className="flex gap-4 pt-6">
-                <Button type="submit" className="bg-green-600 hover:bg-green-700">
+                <Button 
+                  type="submit" 
+                  className="bg-green-600 hover:bg-green-700"
+                  disabled={createIngredient.isPending || updateIngredient.isPending}
+                >
+                  {createIngredient.isPending || updateIngredient.isPending ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : null}
                   {isEdit ? 'Update Ingredient' : 'Save Ingredient'}
                 </Button>
                 <Button type="button" variant="outline" onClick={() => navigate('/ingredients')}>

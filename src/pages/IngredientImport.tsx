@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -5,8 +6,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import Navigation from '../components/Navigation';
-import { Upload, FileSpreadsheet, ArrowLeft } from 'lucide-react';
+import { Upload, FileSpreadsheet, ArrowLeft, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useCreateIngredient } from '@/hooks/useIngredients';
 import * as XLSX from 'xlsx';
 
 const IngredientImport: React.FC = () => {
@@ -14,6 +16,7 @@ const IngredientImport: React.FC = () => {
   const [isUploading, setIsUploading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const createIngredient = useCreateIngredient();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -45,21 +48,53 @@ const IngredientImport: React.FC = () => {
     
     try {
       const reader = new FileReader();
-      reader.onload = (e) => {
+      reader.onload = async (e) => {
         const data = new Uint8Array(e.target?.result as ArrayBuffer);
         const workbook = XLSX.read(data, { type: 'array' });
         const sheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[sheetName];
-        const jsonData = XLSX.utils.sheet_to_json(worksheet);
+        const jsonData = XLSX.utils.sheet_to_json(worksheet) as any[];
         
         console.log('Imported ingredients:', jsonData);
         
+        let successCount = 0;
+        let errorCount = 0;
+
+        for (const row of jsonData) {
+          try {
+            const ingredientData = {
+              name: row.Name || row.name || '',
+              category: (row.Category || row.category || 'Other') as any,
+              e_number: row['E Number'] || row.e_number || null,
+              other_ingredient: row['Other Ingredient'] || row.other_ingredient || null,
+              allergens: row.Allergens ? 
+                (typeof row.Allergens === 'string' ? row.Allergens.split(',').map((a: string) => a.trim()) : []) : 
+                []
+            };
+
+            if (ingredientData.name) {
+              await new Promise((resolve, reject) => {
+                createIngredient.mutate(ingredientData, {
+                  onSuccess: resolve,
+                  onError: reject
+                });
+              });
+              successCount++;
+            }
+          } catch (error) {
+            console.error('Failed to import ingredient:', row, error);
+            errorCount++;
+          }
+        }
+        
         toast({
-          title: "Import successful",
-          description: `Successfully imported ${jsonData.length} ingredients`,
+          title: "Import completed",
+          description: `Successfully imported ${successCount} ingredients${errorCount > 0 ? `, ${errorCount} failed` : ''}`,
         });
         
-        navigate('/ingredients');
+        if (successCount > 0) {
+          navigate('/ingredients');
+        }
       };
       reader.readAsArrayBuffer(file);
     } catch (error) {
@@ -123,7 +158,8 @@ const IngredientImport: React.FC = () => {
               <ul className="text-sm text-green-800 space-y-1">
                 <li>• First row should contain column headers</li>
                 <li>• Required columns: Name, Category</li>
-                <li>• Optional columns: E Number, Allergens (comma-separated)</li>
+                <li>• Optional columns: E Number, Other Ingredient, Allergens (comma-separated)</li>
+                <li>• Category should be one of: Preservative, Antioxidant, Colorant, Flavoring, Stabilizer, Emulsifier, Acidifier, Fining Agent, Other</li>
                 <li>• Save the file as .xlsx or .xls format</li>
               </ul>
             </div>
@@ -133,7 +169,11 @@ const IngredientImport: React.FC = () => {
               disabled={!file || isUploading}
               className="w-full bg-green-600 hover:bg-green-700"
             >
-              <Upload className="h-4 w-4 mr-2" />
+              {isUploading ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Upload className="h-4 w-4 mr-2" />
+              )}
               {isUploading ? 'Importing...' : 'Import Ingredients'}
             </Button>
           </CardContent>

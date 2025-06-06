@@ -4,14 +4,25 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Navigation from '../components/Navigation';
-import { mockIngredients } from '../data/mockData';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Loader2 } from 'lucide-react';
+import { useIngredient } from '@/hooks/useIngredients';
 
 const IngredientDetails: React.FC = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   
-  const ingredient = mockIngredients.find(i => i.id === id);
+  const { data: ingredient, isLoading } = useIngredient(id);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Navigation />
+        <div className="flex items-center justify-center min-h-[400px]">
+          <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+      </div>
+    );
+  }
 
   if (!ingredient) {
     return (
@@ -79,7 +90,7 @@ const IngredientDetails: React.FC = () => {
                     E Number
                   </label>
                   <p className="text-lg text-gray-900">
-                    {ingredient.eNumber || 'Not assigned'}
+                    {ingredient.e_number || 'Not assigned'}
                   </p>
                 </div>
                 
@@ -90,6 +101,15 @@ const IngredientDetails: React.FC = () => {
                   <p className="text-lg text-gray-900">{ingredient.id}</p>
                 </div>
               </div>
+              
+              {ingredient.other_ingredient && (
+                <div className="mt-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Additional Details
+                  </label>
+                  <p className="text-gray-900">{ingredient.other_ingredient}</p>
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -103,7 +123,7 @@ const IngredientDetails: React.FC = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-3">
                   Known Allergens
                 </label>
-                {ingredient.allergens.length > 0 ? (
+                {ingredient.allergens && ingredient.allergens.length > 0 ? (
                   <div className="flex flex-wrap gap-2">
                     {ingredient.allergens.map((allergen, index) => (
                       <span
@@ -141,6 +161,7 @@ const IngredientDetails: React.FC = () => {
                     {ingredient.category === 'Emulsifier' && 'Helps mix ingredients that normally separate'}
                     {ingredient.category === 'Acidifier' && 'Adjusts pH levels and adds tartness'}
                     {ingredient.category === 'Fining Agent' && 'Clarifies and purifies the wine during production'}
+                    {ingredient.category === 'Other' && 'Serves a specialized function in wine production'}
                   </p>
                 </div>
                 
@@ -150,7 +171,7 @@ const IngredientDetails: React.FC = () => {
                   </label>
                   <p className="text-gray-900">
                     This ingredient is commonly used in wine production as a {ingredient.category.toLowerCase()}.
-                    {ingredient.eNumber && ` It is regulated under the E-number system as ${ingredient.eNumber}.`}
+                    {ingredient.e_number && ` It is regulated under the E-number system as ${ingredient.e_number}.`}
                   </p>
                 </div>
                 
@@ -159,10 +180,28 @@ const IngredientDetails: React.FC = () => {
                     Safety Information
                   </label>
                   <p className="text-gray-900">
-                    {ingredient.allergens.length > 0 
+                    {ingredient.allergens && ingredient.allergens.length > 0 
                       ? `Contains allergens: ${ingredient.allergens.join(', ')}. Please check with individuals who have allergies before consumption.`
                       : 'No known allergens associated with this ingredient.'
                     }
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Created
+                  </label>
+                  <p className="text-gray-900">
+                    {new Date(ingredient.created_at).toLocaleDateString()}
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Last Updated
+                  </label>
+                  <p className="text-gray-900">
+                    {new Date(ingredient.updated_at).toLocaleDateString()}
                   </p>
                 </div>
               </div>
