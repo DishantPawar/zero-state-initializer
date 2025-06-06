@@ -3,16 +3,37 @@ import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Button } from '@/components/ui/button';
-import { LogOut, Package } from 'lucide-react';
+import { LogOut, Loader2, Package } from 'lucide-react';
 
 const Navigation: React.FC = () => {
-  const { logout, user } = useAuth();
+  const { logout, user, isLoading } = useAuth();
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    logout();
-    navigate('/');
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login');
   };
+
+  if (isLoading) {
+    return (
+      <nav className="bg-white border-b border-gray-200 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between h-16">
+            <div className="flex items-center">
+              <span className="flex items-center space-x-2">
+                <Package className="h-8 w-8 text-purple-600" />
+                <span className="text-xl font-bold text-gray-900">Elable</span>
+              </span>
+            </div>
+            <div className="flex items-center">
+              <Loader2 className="h-4 w-4 animate-spin text-purple-600" />
+              <span className="ml-2 text-sm text-gray-700">Loading...</span>
+            </div>
+          </div>
+        </div>
+      </nav>
+    );
+  }
 
   return (
     <nav className="bg-white border-b border-gray-200 shadow-sm">

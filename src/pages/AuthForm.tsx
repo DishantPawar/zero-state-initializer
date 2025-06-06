@@ -1,42 +1,43 @@
 
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
+import { Loader2 } from 'lucide-react';
+
+interface LocationState {
+  from?: {
+    pathname: string;
+  };
+}
 
 const AuthForm: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
   const [isRegisterMode, setIsRegisterMode] = useState(false);
-  const { login, register } = useAuth();
+  const { login, register, isLoading } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
+  
+  // Get redirect path from location state or default to products
+  const locationState = location.state as LocationState;
+  const from = locationState?.from?.pathname || '/products';
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
     
     try {
       await login(email, password);
-      toast({
-        title: "Login successful",
-        description: "Welcome back!",
-      });
-      navigate('/products');
+      navigate(from, { replace: true });
     } catch (error) {
-      toast({
-        title: "Login failed",
-        description: "Please check your credentials and try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
+      console.error('Login error:', error);
+      // Error handling is done in the login function
     }
   };
 
@@ -52,23 +53,12 @@ const AuthForm: React.FC = () => {
       return;
     }
 
-    setIsLoading(true);
-    
     try {
       await register(email, password);
-      toast({
-        title: "Registration successful",
-        description: "Account created successfully!",
-      });
-      navigate('/products');
+      navigate(from, { replace: true });
     } catch (error) {
-      toast({
-        title: "Registration failed",
-        description: "An error occurred during registration.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
+      console.error('Registration error:', error);
+      // Error handling is done in the register function
     }
   };
 
@@ -97,6 +87,7 @@ const AuthForm: React.FC = () => {
                 onChange={(e) => setEmail(e.target.value)}
                 className="h-12 bg-gray-100 border-0 text-gray-900 placeholder:text-gray-500"
                 required
+                disabled={isLoading}
               />
             </div>
             
@@ -112,6 +103,7 @@ const AuthForm: React.FC = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 className="h-12 bg-gray-100 border-0 text-gray-900"
                 required
+                disabled={isLoading}
               />
             </div>
             
@@ -128,6 +120,7 @@ const AuthForm: React.FC = () => {
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   className="h-12 bg-gray-100 border-0 text-gray-900"
                   required
+                  disabled={isLoading}
                 />
               </div>
             )}
@@ -137,10 +130,14 @@ const AuthForm: React.FC = () => {
               className="w-full h-12 bg-gray-900 hover:bg-gray-800 text-white font-medium mt-6"
               disabled={isLoading}
             >
-              {isLoading 
-                ? (isRegisterMode ? 'Creating account...' : 'Signing in...') 
-                : (isRegisterMode ? 'Register' : 'Login')
-              }
+              {isLoading ? (
+                <span className="flex items-center">
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  {isRegisterMode ? 'Creating account...' : 'Signing in...'}
+                </span>
+              ) : (
+                isRegisterMode ? 'Register' : 'Login'
+              )}
             </Button>
           </form>
           
@@ -156,6 +153,7 @@ const AuthForm: React.FC = () => {
                   setPassword('');
                   setConfirmPassword('');
                 }}
+                disabled={isLoading}
               >
                 {isRegisterMode ? 'Login' : 'Register'}
               </button>
