@@ -1,17 +1,17 @@
 
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation } from 'wouter';
 import { useAuth } from '../context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { LogOut, Loader2, Package } from 'lucide-react';
 
 const Navigation: React.FC = () => {
   const { logout, user, isLoading } = useAuth();
-  const navigate = useNavigate();
+  const [location, setLocation] = useLocation();
 
   const handleLogout = async () => {
     await logout();
-    navigate('/login');
+    setLocation('/login');
   };
 
   if (isLoading) {

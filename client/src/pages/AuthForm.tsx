@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
+import { useLocation } from 'wouter';
 import { useAuth } from '../context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,33 +23,17 @@ const AuthForm: React.FC = () => {
   const [isRegisterMode, setIsRegisterMode] = useState(false);
   const [verificationSent, setVerificationSent] = useState(false);
   const { login, register, isLoading } = useAuth();
-  const navigate = useNavigate();
-  const location = useLocation();
-  const [searchParams] = useSearchParams();
+  const [location, setLocation] = useLocation();
   const { toast } = useToast();
   
-  // Get redirect path from location state or default to products
-  const locationState = location.state as LocationState;
-  const from = locationState?.from?.pathname || '/products';
-
-  // Check if there's a message in the URL (e.g. after email verification)
-  const message = searchParams.get('message');
-  
-  useEffect(() => {
-    if (message === 'verified') {
-      toast({
-        title: "Email verified",
-        description: "Your email has been verified. You can now log in.",
-      });
-    }
-  }, [message, toast]);
+  // Remove message handling for now since we don't have search params
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
     try {
       await login(email, password);
-      navigate(from, { replace: true });
+      setLocation('/products');
     } catch (error) {
       console.error('Login error:', error);
       // Error handling is done in the login function
@@ -99,15 +83,7 @@ const AuthForm: React.FC = () => {
             </Alert>
           )}
           
-          {message === 'verification-error' && (
-            <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" />
-              <AlertTitle>Verification error</AlertTitle>
-              <AlertDescription>
-                There was an error verifying your email. Please try again or contact support.
-              </AlertDescription>
-            </Alert>
-          )}
+
           
           <form onSubmit={isRegisterMode ? handleRegister : handleLogin} className="space-y-4">
             <div className="space-y-2">
