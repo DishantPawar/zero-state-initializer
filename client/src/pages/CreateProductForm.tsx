@@ -76,7 +76,14 @@ export default function CreateProductForm() {
   });
 
   const onSubmit = (data: InsertProduct) => {
-    createProductMutation.mutate(data);
+    // Convert string boolean values to actual booleans
+    const processedData = {
+      ...data,
+      organic: data.organic === 'true' || data.organic === true,
+      vegetarian: data.vegetarian === 'true' || data.vegetarian === true,
+      vegan: data.vegan === 'true' || data.vegan === true,
+    };
+    createProductMutation.mutate(processedData);
   };
 
   const handleCancel = () => {
