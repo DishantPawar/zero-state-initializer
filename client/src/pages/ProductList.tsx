@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useLocation } from 'wouter';
+import { Link } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -15,7 +16,7 @@ const ProductList: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [previewProduct, setPreviewProduct] = useState<Product | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
-  const navigate = useNavigate();
+  const [location, setLocation] = useLocation();
   const { toast } = useToast();
 
   const filteredProducts = products.filter(product =>
@@ -25,11 +26,11 @@ const ProductList: React.FC = () => {
   );
 
   const handleEdit = (id: string) => {
-    navigate(`/products/edit/${id}`);
+    setLocation(`/products/edit/${id}`);
   };
 
   const handleDetails = (id: string) => {
-    navigate(`/products/details/${id}`);
+    setLocation(`/products/details/${id}`);
   };
 
   const handlePreview = (product: Product) => {
@@ -60,7 +61,7 @@ const ProductList: React.FC = () => {
   };
 
   const handleImport = () => {
-    navigate('/products/import');
+    setLocation('/products/import');
   };
 
   const handleExport = () => {
@@ -103,7 +104,7 @@ const ProductList: React.FC = () => {
             <div className="flex flex-col sm:flex-row gap-4 justify-between">
               <div className="flex gap-2">
                 <Button 
-                  onClick={() => navigate('/products/create')}
+                  onClick={() => setLocation('/products/create')}
                   className="bg-purple-600 hover:bg-purple-700"
                 >
                   <Plus className="h-4 w-4 mr-2" />
