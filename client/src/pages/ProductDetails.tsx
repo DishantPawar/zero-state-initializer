@@ -1,5 +1,5 @@
 import React from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useLocation, useParams } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
